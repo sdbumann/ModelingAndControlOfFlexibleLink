@@ -1,0 +1,50 @@
+{
+  "buildCommand" : "prepareForIndexing",
+  "configuredTargets" : [
+    {
+      "guid" : "8da11558fe55be24e4ba91e0ba773f8e2397e8b667305f956d6007233a385b3e"
+    }
+  ],
+  "continueBuildingAfterErrors" : true,
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "x86_64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "platform" : "macosx",
+      "sdk" : "macosx11.3",
+      "sdkVariant" : "macos",
+      "supportedArchitectures" : [
+        "x86_64h",
+        "x86_64"
+      ],
+      "targetArchitecture" : "x86_64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/philippe/Desktop/cpp/QuanserQube/testController/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/philippe/Desktop/cpp/QuanserQube/testController/Build",
+      "derivedDataPath" : "/Users/philippe/Library/Developer/Xcode/DerivedData",
+      "indexDataStoreFolderPath" : "/Users/philippe/Library/Developer/Xcode/DerivedData/testController-ecynmrszifbgkqgqsmtkwldmrhza/Index/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/philippe/Library/Developer/Xcode/DerivedData/testController-ecynmrszifbgkqgqsmtkwldmrhza/Index/PrecompiledHeaders",
+      "pchPath" : "/Users/philippe/Desktop/cpp/QuanserQube/testController/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "synthesized" : {
+        "table" : {
+          "ENABLE_PREVIEWS" : "NO"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "launch",
+  "shouldCollectMetrics" : false,
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}

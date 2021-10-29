@@ -1,0 +1,3 @@
+Target dependency graph (2 targets)
+testController in testController
+testController2 in testController
