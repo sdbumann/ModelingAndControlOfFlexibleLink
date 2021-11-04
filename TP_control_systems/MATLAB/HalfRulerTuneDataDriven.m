@@ -65,7 +65,7 @@ function [FB, R_, S_, T_] = DataDriven(G, plot)
     hardReq = [ TuningGoal.WeightedGain('r','y',W2,[])];
 
 
-    opts = systuneOptions('RandomStart',0);
+    opts = systuneOptions('RandomStart', 0);
     [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq,opts);
 
     C0 = getBlockValue(CL,'C');
@@ -170,8 +170,8 @@ function [FB, R_, S_, T_] = DataDriven(G, plot)
         T = feedback(FB*G,1);
         bodemag(T, 1/W2);
 %         bodemag(T);
-clear
-title('$T = \frac{Y}{R}$', 'Interpreter', 'latex')
+%         clear
+        title('$T = \frac{Y}{R}$', 'Interpreter', 'latex')
     end
 
     %% convert to RST controller
@@ -199,7 +199,7 @@ end
 
  end
 
-function theta = THETA(G)
+function theta = THETA(sys)
 
 % q = sys.SamplingGrid.distance;
 

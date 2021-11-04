@@ -62,7 +62,7 @@ title("spectral densitiy of u(k)")
 
 data = iddata(y, r, Ts);
 window_length = 30;
-G_fourier = spa(data, window_length) ;
+G_fourier = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
 figure
 bode(G_fourier)
 title("Matlab spa function")
@@ -153,7 +153,7 @@ title(sprintf("Impulse response to validate if %d samples are enough", OElength)
 nk=1; % nk=d+1
 
 %% 3.4 estimation of nb and na
-
+n = 10
 %every combination of vector na=[1:7] and nb=[1]
 a=[1:n];
 b=[n];
@@ -180,7 +180,7 @@ d=reshape(c,[],2);
 
 loss=zeros(length(d),1);
 for i = 1:length(d)
-   SYS_ARX = arx(DATA, [d(i,:), nk]);
+   SYS_ARX = arx(DATA, [i,i, nk]);
    loss(i)=SYS_ARX.EstimationInfo.LossFcn
 end
 figure()
@@ -203,6 +203,11 @@ nb=5%as a result of different loss fuctions
 
 %% 4 parametrix identification and validation
 %% time domain
+
+na=7%as a result of different loss fuctions
+nb=7%as a result of different loss fuctions
+
+
 nc = n;
 nd = n;
 nf = na;
@@ -246,6 +251,7 @@ compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
 % frequency response of sys 
 figure
 Mspa=spa(DATA_TEST, 15) ;%change size of hann window
+Mspa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
 bode(Mspa)
 
 % Frequency response comparison
