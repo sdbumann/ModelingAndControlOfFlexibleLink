@@ -39,3 +39,5 @@ TP_control_systems/LabVIEW/.DS_Store
 .cache/
 
 TP_control_systems/LabVIEW/src/testLibLoader.vi
+
+*.m~

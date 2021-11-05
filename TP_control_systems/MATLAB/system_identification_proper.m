@@ -131,8 +131,8 @@ for i = 1:10
     showConfidence(h,2) % plot their confidence intervals (+/-2sigma).
     title(['order ', num2str(i)])
 end
-% thus we can say that the order is 7 -> n=7
-n=7
+% thus we can say that the order is 8 -> n=8
+n=8
 
 %% 3.3 estimation of delay = nk
 OElength=30;
@@ -153,43 +153,21 @@ title(sprintf("Impulse response to validate if %d samples are enough", OElength)
 nk=1; % nk=d+1
 
 %% 3.4 estimation of nb and na
-n = 10
-%every combination of vector na=[1:7] and nb=[1]
-a=[1:n];
-b=[n];
-[A,B] = meshgrid(a,b);
-c=cat(2,A',B');
-d=reshape(c,[],2);
+n_ = 10
+n= 10 % QUESTION: is it ok to take n=10 because with zero/pole cancelation one can see that global order should be not bigger than 8
 
-loss=zeros(length(d),1);
-for i = 1:length(d)
-   SYS_ARX = arx(DATA, [d(i,:), nk]);
-   loss(i)=SYS_ARX.EstimationInfo.LossFcn
-end
-figure()
-plot(a, loss)
-title(['Loss function for varying na and nb=', num2str(n)])
-xlabel('na')
-
-%every combination of vector na=[1] and nb=[1:7]
-a=[n];
-b=[1:n];
-[A,B] = meshgrid(a,b);
-c=cat(2,A',B');
-d=reshape(c,[],2);
-
-loss=zeros(length(d),1);
-for i = 1:length(d)
+loss=zeros(n_,1);
+for i = 1:n_
    SYS_ARX = arx(DATA, [i,i, nk]);
    loss(i)=SYS_ARX.EstimationInfo.LossFcn
 end
 figure()
-plot(b, loss)
-title(['Loss function for varying nb and na=', num2str(n)])
-xlabel('nb')
+plot([1:n_], loss)
+title(['Loss function for varying na = nb'])
+xlabel('na=nb')
 
-na=4%as a result of different loss fuctions
-nb=5%as a result of different loss fuctions
+na=7%as a result of different loss fuctions
+nb=7%as a result of different loss fuctions
 
 % %% 3.5 look at "optimal" order according to matlab 
 % NN = struc([1:10], [1:10], [1:10]);
@@ -203,11 +181,6 @@ nb=5%as a result of different loss fuctions
 
 %% 4 parametrix identification and validation
 %% time domain
-
-na=7%as a result of different loss fuctions
-nb=7%as a result of different loss fuctions
-
-
 nc = n;
 nd = n;
 nf = na;
@@ -250,8 +223,9 @@ compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
 
 % frequency response of sys 
 figure
-Mspa=spa(DATA_TEST, 15) ;%change size of hann window
-Mspa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
+% Mspa=spa(DATA_TEST, 15) ;%change size of hann window
+Mspa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ; % QUESTION: is data right? -> should it not be DATA_TEST as I did bellow?
+Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),400)) ; 
 bode(Mspa)
 
 % Frequency response comparison

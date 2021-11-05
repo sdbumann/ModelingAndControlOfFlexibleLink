@@ -37,31 +37,27 @@ Kp = tunableSurface('Kp', 1, domain, shapefcn);
 % viewSurf(Ktuned)
 
 %% Ki
+Ki = tunableSurface('Ki', 1, domain, shapefcn); % same as above but with Ki
 
-Ki = tunableSurface('Ki', 1, domain, shapefcn);
-% same as above but with Ki
 
 % get(Ki) % summary of gain surface
 % 
 % Ktuned = setData(Ki,[1,2,3,4]); % [K0, K1, K2, K3] = 
 % viewSurf(Ktuned)
 
-num  = tunableSurface('NUM', ones(5,1)', domain, shapefcn)
-den  = tunableSurface('DEN', ones(5,1)', domain, shapefcn)
-%% Kd & Tf
-Kd = tunableSurface('Kd', 1, domain, shapefcn)
 
-[A,B,C,D] = ssdata(drss(4))
-K =  tf(num,den,Ts)
+%% Kd & Tf
+Kd = tunableSurface('Kd', 1, domain, shapefcn) % same as above but with Kd
+
 Tf = 2*Ts;
 
-%% tune PI controller
 
-%% initial stabilizing controller
+
+%% tune PID controller
 Ts = sys.Ts;
 
 
-C0 = K % pid(Kp, Ki, Kd, Tf, Ts);
+C0 = pid(Kp, Ki, Kd, Tf, Ts);
 
 % C0 = tunablePID('C', 'PID', Ts); %
 % C0.Kp.Value  = Kp;
@@ -94,13 +90,11 @@ hardReq = [ TuningGoal.WeightedGain('r','y',W2,[])];
 opts = systuneOptions('RandomStart', 0, 'Display', 'iter');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
-Kp_ = evalSurf(Kp, 45);
-Ki_ = evalSurf(Ki, 45);
+%%
+
 
 %%
 
-D_ = getBlockValue(CL,'DEN')
-N_ = getBlockValue(CL,'NUM')
 
 %%
 Kp.Coefficients.Value = getBlockValue(CL,'Kp')
