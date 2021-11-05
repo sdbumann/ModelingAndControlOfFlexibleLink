@@ -19,11 +19,10 @@ sys.SamplingGrid = struct('distance',scheduling_par);
 domain = struct('SchedulingParameter', scheduling_par); % list of all schdeuling params
 
 q = sys.SamplingGrid.distance';
-shapefcn = @(q) [q, q.^2, q.^3]; % basis functions 
+shapefcn = @(q) [q, q.^2, q.^3]; % basis functions
 
 
 %% Kd & Tf
-% Kd = tunableSurface('Kd', 1, domain, shapefcn)
 %%
 % num  = tunableSurface('NUM', ones(5,1)', domain, shapefcn)
 % den  = tunableSurface('DEN', ones(5,1)', domain, shapefcn)
@@ -98,10 +97,10 @@ T0 = connect(sys,C0,Sum1,{'r'},{'u','e','y'});
 % constraint || W2 T ||_\infty <1
 % constraint || W3 U ||_\infty <1
 
-% W1 = 1/(z-1) + 0.11/(z-1)^2;
-W1 = tf([db2mag(-6)],[1], Ts);
-W2 = tf([db2mag(-4)],[1], Ts); %=db2mag(-6)
-W3 = tf([db2mag(-30)],[1],Ts); %=db2mag(-20);
+% % W1 = 1/(z-1) + 0.11/(z-1)^2;
+% W1 = tf([db2mag(-6)],[1], Ts);
+% W2 = tf([db2mag(-4)],[1], Ts); %=db2mag(-6)
+% W3 = tf([db2mag(-30)],[1],Ts); %=db2mag(-20);
 
 % W1 = 1/(z-1) + 0.01/(z-1)^2;
 % % W1 = tf([db2mag(-6)],[1], Ts);
@@ -115,10 +114,14 @@ W3 = tf([db2mag(-30)],[1],Ts); %=db2mag(-20);
 % W3 = 1/makeweight(db2mag(6),12,db2mag(-20),Ts);
 % %W3 = tf([db2mag(-6)],[1],Ts); %=db2mag(-20);
 
+%% new start
+W1 = tf([db2mag(-6)],[1], Ts);
+W2 = tf(1/(makeweight(db2mag(6),40,db2mag(-80),Ts)+makeweight(db2mag(-80),0.1,db2mag(6),Ts))); %=db2mag(-6)
+W3 = tf([db2mag(-6)],[1], Ts); %=db2mag(-20);
 
 
-softReq = [ TuningGoal.WeightedGain('r','e',W1,[])];
-hardReq = [ TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[])];
+softReq =   [ TuningGoal.WeightedGain('r','e',W1,[])];
+hardReq =   [ TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 
 opts = systuneOptions('RandomStart', 0, 'Display', 'iter');
@@ -153,6 +156,9 @@ plotResult(K_, sys(:,:,1), W1, W2, W3);
 [R_,S_] = tfdata(K_,'v');
 T_ = R_; % in future we can add the gettho low pass here in T
 FormatRST(R_,S_,T_)
+
+%%
+plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
     
 
 
