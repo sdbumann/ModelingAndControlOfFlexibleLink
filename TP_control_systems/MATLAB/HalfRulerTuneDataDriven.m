@@ -123,9 +123,9 @@ function [FB, R_, S_, T_] = DataDriven(G, plot)
     OBJ.inf.W1 = .01/(z-1)^2; % Only minimize || W1 S ||_inf.
     % Ideally objective should be around 1
     
-    W1=1/tf(db2mag(6));
-    W2=tf(1/2);
-    W3= 1/tf(db2mag(10));
+    W1=tf(db2mag(-6));
+    W2=tf(db2mag(-6));
+    W3= tf(db2mag(-10));
     CON.W1 = [W1]; % constraint || W1 S ||_\infty <1, here we only want to guarantee a modulus margin of 2
     CON.W2 = [W2]; % constraint || W2 T ||_\infty <1
     CON.W3 = [W3]; % constraint || W3 U ||_\infty <1
@@ -150,28 +150,7 @@ function [FB, R_, S_, T_] = DataDriven(G, plot)
     %% 
 
     if plot
-        figure
-        S = feedback(1,G*FB); % compute sensitivity
-        bodemag(S, 1/W1);
-%         bodemag(S);
-        title('sensitivity function $S = \frac{E}{R} $', 'Interpreter', 'latex')
-
-        figure
-        U = feedback(FB, G);
-        bodemag(U, 1/W3);
-%         bodemag(U);
-        title('Sensitivity Function $U = \frac{U}{R}$', 'Interpreter', 'latex')
-
-        figure
-        step(U);
-        title('Control Signal (after step)')
-
-        figure
-        T = feedback(FB*G,1);
-        bodemag(T, 1/W2);
-%         bodemag(T);
-%         clear
-        title('$T = \frac{Y}{R}$', 'Interpreter', 'latex')
+        plotResult(FB, G, W1, W2, W3)
     end
 
     %% convert to RST controller
@@ -181,6 +160,45 @@ function [FB, R_, S_, T_] = DataDriven(G, plot)
     FormatRST(R_,S_,T_)
     
 end
+
+function [] = plotResult(K_, G, W1, W2, W3)
+    figure
+    subplot(3,2,1)
+    S = feedback(1,G*K_); % compute sensitivity
+    bodemag(S, 1/W1);
+    title('sensitivity function $S = \frac{E}{R}$', 'interpreter', 'latex')
+    legend('S', '1/W1', 'Location', 'northwest');
+    
+    subplot(3,2,2)
+    step(S);
+    title('Step Response S')
+
+    subplot(3,2,3)
+    T = feedback(K_*G,1);
+    fb = bandwidth(T);
+    bodemag(T, 1/W2);
+    hold on
+    xline(fb);
+    hold on
+    title(['$T = \frac{Y}{R}$ with bandwidth = ', num2str(fb)], 'interpreter', 'latex')
+    legend('T', '1/W2', 'bandwidth', 'Location', 'southwest')
+    hold off
+    
+    subplot(3,2,4)
+    step(T);
+    title('Step Response T')
+    
+    subplot(3,2,5)
+    U = feedback(K_, G);
+    bodemag(U, 1/W3);
+    title('Sensitivity Function $U = \frac{U}{R}$', 'interpreter', 'latex')
+    legend('U', '1/W3', 'Location', 'southeast');
+
+    subplot(3,2,6)
+    step(U);
+    title('Control Signal U (after step)')
+end
+
 %%
  function FormatRST(R,S,T)
  % K: controller to test on the active suspenssion

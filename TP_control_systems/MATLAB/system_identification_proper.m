@@ -225,7 +225,7 @@ compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
 figure
 % Mspa=spa(DATA_TEST, 15) ;%change size of hann window
 Mspa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ; % QUESTION: is data right? -> should it not be DATA_TEST as I did bellow?
-Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),400)) ; 
+% Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),400)) ; 
 bode(Mspa)
 
 % Frequency response comparison
