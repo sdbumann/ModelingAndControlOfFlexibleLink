@@ -49,7 +49,6 @@ K = tf([a5,a4,a3,a2,a1,a0], [1,b4,b3,b2,b1,b0], Ts);
 %% tune TF controller
 Ts = sys.Ts;
 
-
 C0 = K;
 
 z = tf('z',Ts);
@@ -71,24 +70,24 @@ T0 = connect(sys,C0,Sum1,{'r'},{'u','e','y'}, {'y'});
 % constraint || W3 U ||_\infty <1
 
 %% good bandwidth but bad step respnce U
-% W1=tf(db2mag(-14));
-% W2=tf(db2mag(-14));
-% W3= tf(db2mag(-36));
-% 
-% Req = TuningGoal.LoopShape('y',c2d(150/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
-% 
-% Req.Openings = 'y'; % dont know if this works
-% 
-% softReq =   [ Req ];
-% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
+W1=tf(db2mag(-14));
+W2=tf(db2mag(-14));
+W3= tf(db2mag(-36));
+
+Req = TuningGoal.LoopShape('y',c2d(150/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
+
+Req.Openings = 'y'; % dont know if this works
+
+softReq =   [ Req ];
+hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 %% good step respnce of U (but bad bandwidth 38rad/s)
-W1 = makeweight(db2mag(30), 10, db2mag(-6));
-W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
-W3 = makeweight(db2mag(80), 8, db2mag(-8));
-
-softReq =   [ ];
-hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
+% W1 = makeweight(db2mag(30), 10, db2mag(-6));
+% W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
+% W3 = makeweight(db2mag(80), 8, db2mag(-8));
+% 
+% softReq =   [ ];
+% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 
 %%
@@ -127,7 +126,7 @@ T_ = R_; % in future we can add the gettho low pass here in T
 FormatRST(R_,S_,T_)
 
 %%
-% plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
+plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
     
 
 

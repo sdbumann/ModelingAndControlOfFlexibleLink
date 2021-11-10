@@ -166,8 +166,8 @@ plot([1:n_], loss)
 title(['Loss function for varying na = nb'])
 xlabel('na=nb')
 
-na=7%as a result of different loss fuctions
-nb=7%as a result of different loss fuctions
+na=8%as a result of different loss fuctions
+nb=8%as a result of different loss fuctions
 
 % %% 3.5 look at "optimal" order according to matlab 
 % NN = struc([1:10], [1:10], [1:10]);
@@ -226,7 +226,7 @@ figure
 % Mspa=spa(DATA_TEST, 15) ;%change size of hann window
 Mspa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ; % QUESTION: is data right? -> should it not be DATA_TEST as I did bellow?
 % Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),400)) ; 
-bode(Mspa)
+% bode(Mspa)
 
 % Frequency response comparison
 figure
