@@ -6,5 +6,6 @@ data_val = iddata(y,r,Ts);
 G=sys(:,:,1);
 R=R_; S=S_;
 compare(data_val,feedback(G*tf(R,S, Ts),1)); % compare identified
-% compare(data_val,feedback(G_6cm*tf(Rarray(idx,:),Sarray(idx,:), Ts),1)); % compare identified  
+% compare(data_val,feedback(G_105mm*tf(Rarray(idx,:),Sarray(idx,:), Ts),1)); % compare identified 
+legend('data', 'G105mm')
 shg

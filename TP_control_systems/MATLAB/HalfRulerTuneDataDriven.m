@@ -12,7 +12,7 @@ Sarray_ = zeros(4, 6);
 Tarray_ = zeros(4, 6);
 scheduling_par_array_ = 45:20:105;
 
-[~, Rarray_(1, :), Sarray_(1, :), Tarray_(1, :)] = DataDriven(G_45mm, true);
+[~, Rarray_(1, :), Sarray_(1, :), Tarray_(1, :)] = DataDriven(G_45mm, false);
 [~, Rarray_(2, :), Sarray_(2, :), Tarray_(2, :)] = DataDriven(G_65mm, false);
 [~, Rarray_(3, :), Sarray_(3, :), Tarray_(3, :)] = DataDriven(G_85mm, false);
 [~, Rarray_(4, :), Sarray_(4, :), Tarray_(4, :)] = DataDriven(G_105mm, false);
@@ -33,7 +33,7 @@ if 0
     plot(scheduling_par_array, Tarray)
 end
 %%
-scheduling_par = 85 %mm
+scheduling_par = 45 %mm
 [closest_scheduling_par, idx] = min(abs(scheduling_par_array - scheduling_par));
 FormatRST(Rarray(idx,:),Sarray(idx,:),Tarray(idx,:));
 

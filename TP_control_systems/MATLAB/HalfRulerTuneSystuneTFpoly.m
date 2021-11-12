@@ -70,24 +70,28 @@ T0 = connect(sys,C0,Sum1,{'r'},{'u','e','y'}, {'y'});
 % constraint || W3 U ||_\infty <1
 
 %% good bandwidth but bad step respnce U
-W1=tf(db2mag(-14));
-W2=tf(db2mag(-14));
-W3= tf(db2mag(-36));
+% W1=tf(db2mag(-14));
+% W2=tf(db2mag(-14));
+% W3= tf(db2mag(-36));
+% 
+% Req = TuningGoal.LoopShape('y',c2d(150/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
+% 
+% Req.Openings = 'y'; % dont know if this works
+% 
+% softReq =   [ Req ];
+% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
-Req = TuningGoal.LoopShape('y',c2d(150/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
 
-Req.Openings = 'y'; % dont know if this works
+%% good step responce U but bad bandwidth
+W1 = 0.030/(z-1) + 0.00003/(z-1)^2;
+W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
+W3 = tf([db2mag(-8.9)],[1], Ts);
+
+Req = TuningGoal.LoopShape('y',c2d(100/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
+Req.Openings = 'y';
 
 softReq =   [ Req ];
 hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
-
-%% good step respnce of U (but bad bandwidth 38rad/s)
-% W1 = makeweight(db2mag(30), 10, db2mag(-6));
-% W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
-% W3 = makeweight(db2mag(80), 8, db2mag(-8));
-% 
-% softReq =   [ ];
-% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 
 %%
@@ -116,7 +120,8 @@ b0.Coefficients.Value = getBlockValue(CL,'b0');
 
 
 %%
-K_ = evalMultiSurf(a5,a4,a3,a2,a1,a0,b4,b3,b2,b1,b0,Ts,45);
+scheduling_var = 45
+K_ = evalMultiSurf(a5,a4,a3,a2,a1,a0,b4,b3,b2,b1,b0,Ts,scheduling_var);
 plotResult(K_, sys(:,:,1), W1, W2, W3);
 
 %% convert to RST controller
@@ -126,7 +131,7 @@ T_ = R_; % in future we can add the gettho low pass here in T
 FormatRST(R_,S_,T_)
 
 %%
-plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
+% plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
     
 
 
@@ -159,6 +164,7 @@ function [] = plotResult(K_, G, W1, W2, W3)
     
     subplot(3,2,2)
     step(S);
+    xlim([0 0.8])
     title('Step Response S')
 
     subplot(3,2,3)
@@ -174,6 +180,7 @@ function [] = plotResult(K_, G, W1, W2, W3)
     
     subplot(3,2,4)
     step(T);
+    xlim([0 0.8])
     title('Step Response T')
     
     subplot(3,2,5)
@@ -184,6 +191,7 @@ function [] = plotResult(K_, G, W1, W2, W3)
 
     subplot(3,2,6)
     step(U);
+    xlim([0 0.8])
     title('Control Signal U (after step)')
 end
 

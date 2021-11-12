@@ -12,8 +12,8 @@ title("input u")
 
 % remove DC offset of u and y
 mean_u = mean(u)
-y=detrend(y, 0); % Remove the mean value of the data
-u=detrend(u, 0); % Remove the mean value of the data
+y=y-y(1) % Remove the mean value of the data
+% u=detrend(u, 0); % Remove the mean value of the data
 
 % % remove linear trend of u and y
 % y=detrend(y, 1);
@@ -201,7 +201,7 @@ FILT = 1-1/tf('z');
 SYS_ARX = arx(DATA_TRAIN, [na nb nk]) ;
 SYS_IV4 = iv4(DATA_TRAIN, [na nb nk]) ;
 SYS_ARMAX = armax(DATA_TRAIN, [na nb nc nk]) ;
-SYS_OE = oe(DATA_TRAIN, [nb nf nk]) ;
+SYS_OE = oe(diff(DATA_TRAIN), [nb nf nk]) ;
 SYS_BJ = bj(DATA_TRAIN, [nb nc nd nf nk]) ;
 SYS_N4SID = n4sid(DATA_TRAIN, n) ;
 
@@ -224,7 +224,7 @@ compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
 % frequency response of sys 
 figure
 % Mspa=spa(DATA_TEST, 15) ;%change size of hann window
-Mspa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ; % QUESTION: is data right? -> should it not be DATA_TEST as I did bellow?
+Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),400)) ; % QUESTION: is data right? -> should it not be DATA_TEST as I did bellow?
 % Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),400)) ; 
 % bode(Mspa)
 
