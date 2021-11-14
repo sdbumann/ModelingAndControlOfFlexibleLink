@@ -12,7 +12,7 @@ title("input u")
 
 % remove DC offset of u and y
 mean_u = mean(u)
-y=y-y(1) % Remove the mean value of the data
+y=y-y(1); % Remove the mean value of the data
 % u=detrend(u, 0); % Remove the mean value of the data
 
 % % remove linear trend of u and y
@@ -107,7 +107,7 @@ loss = zeros(nabmax,1);
 for i = 1:nabmax
     %SYS_ARX=armax(DATA, [na, nb, nk])
     SYS_ARX = arx(DATA, [i, i, 1]);
-    loss(i)=SYS_ARX.EstimationInfo.LossFcn % compute loss function os SYS_ARX
+    loss(i)=SYS_ARX.EstimationInfo.LossFcn; % compute loss function os SYS_ARX
 end
 
 figure()
@@ -154,12 +154,11 @@ nk=1; % nk=d+1
 
 %% 3.4 estimation of nb and na
 n_ = 10
-n= 10 % QUESTION: is it ok to take n=10 because with zero/pole cancelation one can see that global order should be not bigger than 8
 
 loss=zeros(n_,1);
 for i = 1:n_
    SYS_ARX = arx(DATA, [i,i, nk]);
-   loss(i)=SYS_ARX.EstimationInfo.LossFcn
+   loss(i)=SYS_ARX.EstimationInfo.LossFcn;
 end
 figure()
 plot([1:n_], loss)
@@ -188,20 +187,19 @@ nf = na;
 % split data in training and testing set
 
 N2 = length(u)/2;
-u_train = u(1:N2);
-u_test = u((N2+1):end);
-y_train = y(1:N2);
-y_test = y((N2+1):end);
+u_test = u(1:N2);
+u_train = u((N2+1):end);
+y_test = y(1:N2);
+y_train = y((N2+1):end);
 
 DATA_TRAIN = iddata(y_train, u_train, Ts);
 DATA_TEST = iddata(y_test, u_test, Ts);
 
 % identify different models
-FILT = 1-1/tf('z');
 SYS_ARX = arx(DATA_TRAIN, [na nb nk]) ;
 SYS_IV4 = iv4(DATA_TRAIN, [na nb nk]) ;
 SYS_ARMAX = armax(DATA_TRAIN, [na nb nc nk]) ;
-SYS_OE = oe(diff(DATA_TRAIN), [nb nf nk]) ;
+SYS_OE = oe(DATA_TRAIN, [nb nf nk]) ;
 SYS_BJ = bj(DATA_TRAIN, [nb nc nd nf nk]) ;
 SYS_N4SID = n4sid(DATA_TRAIN, n) ;
 
@@ -211,22 +209,8 @@ compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
 
 %% Frequency domain and residus
 
-% frequency
-
-%I think that the following code is not necessary ^^
-% figure
-% fft_y_u = fft(y_test)./fft(u_test); % average over PRBS periods?
-% w = 0:(2*pi/N2/Ts):((N2-1)/N2*2*pi/Ts);
-% fr_id_sys = frd(fft_y_u(2:end), w(2:end));
-% compare(fr_id_sys, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
-% best model: 
-
 % frequency response of sys 
-figure
-% Mspa=spa(DATA_TEST, 15) ;%change size of hann window
-Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),400)) ; % QUESTION: is data right? -> should it not be DATA_TEST as I did bellow?
-% Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),400)) ; 
-% bode(Mspa)
+Mspa = spafdr(diff(DATA_TEST), 12, logspace(1,log10(pi/Ts),1000)) ;
 
 % Frequency response comparison
 figure

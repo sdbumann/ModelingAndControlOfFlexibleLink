@@ -124,6 +124,15 @@ scheduling_var = 45
 K_ = evalMultiSurf(a5,a4,a3,a2,a1,a0,b4,b3,b2,b1,b0,Ts,scheduling_var);
 plotResult(K_, sys(:,:,1), W1, W2, W3);
 
+K_45 = evalMultiSurf(a5,a4,a3,a2,a1,a0,b4,b3,b2,b1,b0,Ts,45);
+K_65 = evalMultiSurf(a5,a4,a3,a2,a1,a0,b4,b3,b2,b1,b0,Ts,65);
+K_85 = evalMultiSurf(a5,a4,a3,a2,a1,a0,b4,b3,b2,b1,b0,Ts,85);
+K_105 = evalMultiSurf(a5,a4,a3,a2,a1,a0,b4,b3,b2,b1,b0,Ts,105);
+
+figure
+bodemag(K_45,K_65,K_85,K_105)
+legend('K45','K65','K85','K105')
+
 %% convert to RST controller
 
 [R_,S_] = tfdata(K_,'v');

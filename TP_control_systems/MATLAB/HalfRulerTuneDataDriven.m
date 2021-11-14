@@ -12,10 +12,10 @@ Sarray_ = zeros(4, 6);
 Tarray_ = zeros(4, 6);
 scheduling_par_array_ = 45:20:105;
 
-[~, Rarray_(1, :), Sarray_(1, :), Tarray_(1, :)] = DataDriven(G_45mm, false);
-[~, Rarray_(2, :), Sarray_(2, :), Tarray_(2, :)] = DataDriven(G_65mm, false);
-[~, Rarray_(3, :), Sarray_(3, :), Tarray_(3, :)] = DataDriven(G_85mm, false);
-[~, Rarray_(4, :), Sarray_(4, :), Tarray_(4, :)] = DataDriven(G_105mm, false);
+[TF_45, Rarray_(1, :), Sarray_(1, :), Tarray_(1, :)] = DataDriven(G_45mm, false);
+[TF_65, Rarray_(2, :), Sarray_(2, :), Tarray_(2, :)] = DataDriven(G_65mm, false);
+[TF_85, Rarray_(3, :), Sarray_(3, :), Tarray_(3, :)] = DataDriven(G_85mm, false);
+[TF_105, Rarray_(4, :), Sarray_(4, :), Tarray_(4, :)] = DataDriven(G_105mm, false);
 %%
 [scheduling_par_array, Rarray] = matrix_interpolation(scheduling_par_array_, Rarray_, 140);
 [~, Sarray] = matrix_interpolation(scheduling_par_array_, Sarray_, 140);
