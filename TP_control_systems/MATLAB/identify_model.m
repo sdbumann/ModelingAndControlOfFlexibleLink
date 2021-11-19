@@ -12,19 +12,20 @@ w = logspace(1,log10(pi/Ts),1000);
 data = iddata(y,r,Ts);
 
 Gf = spafdr((data),[],w);
-Ge = oe(data,[16,16,1]);
+Ge = oe(data,[10,10,1]);
 
 % bode(Ge/FILT,Gf/FILT,'--k','sd',2)
+compare(Ge/FILT,Gf/FILT)
 
 G = Ge/FILT;
 
 
 
 %% half ruler
-load('half_ruler_model_array.mat');
-bodemag(G_45mm, G_65mm, G_85mm, G_105mm, G)
-legend('G45mm', 'G65mm', 'G85mm', 'G105mm', 'G')
-shg
+% load('half_ruler_model_array.mat');
+% bodemag(G_45mm, G_65mm, G_85mm, G_105mm, G)
+% legend('G45mm', 'G65mm', 'G85mm', 'G105mm', 'G')
+% shg
 
 %% full ruler
 % load('full_ruler_model_array.mat');

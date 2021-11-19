@@ -1,7 +1,7 @@
 clc
 close all
 clear
-[u,y,r,t] = ReadBinary('./logs_half_ruler_85mm.bin');
+[u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
 Ts = 5e-3;
 %% 1 input data analysis
 
@@ -102,7 +102,7 @@ DATA = iddata(y, r, Ts); % make to dataformat that arx and armax can use it
 
 %% 3.1 estimation of global order using loss function
 SYS_ARX = [];
-nabmax=10;
+nabmax=18   ;
 loss = zeros(nabmax,1);
 for i = 1:nabmax
     %SYS_ARX=armax(DATA, [na, nb, nk])
@@ -114,7 +114,7 @@ figure()
 plot([1:nabmax], loss)
 title('Loss Function for different orders')
 
-order=3; % we can see that it is in region [3:10] -> thus the optimal global order of the system n>=3 
+order=7; % we can see that it is in region [3:10] -> thus the optimal global order of the system n>=3 
 % SYS_ARX = arx(DATA, [order, order, 1]) ;
 % figure()
 % bode(SYS_ARX)
@@ -153,7 +153,7 @@ title(sprintf("Impulse response to validate if %d samples are enough", OElength)
 nk=1; % nk=d+1
 
 %% 3.4 estimation of nb and na
-n_ = 10
+n_ = 20
 
 loss=zeros(n_,1);
 for i = 1:n_
@@ -205,7 +205,8 @@ SYS_N4SID = n4sid(DATA_TRAIN, n) ;
 
 figure
 compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
-% best model: OE
+ylim([-2000 5000])
+% best model: ARMAX
 
 %% Frequency domain and residus
 
@@ -240,6 +241,23 @@ title("State space (N4SID)");
 
 % autocorrelation is only for models with a noise estimation (noise should
 % thus be white) -> only for ARX, ARMAX and BJ
-% not validated: ARX (both), ARMAX (both), BJ (both), state space
-% validated: IV4, OE
+% ARMAX good fit in temporel and in frequency domain, also almost validated
 
+%% G is best model
+n  = 8;
+na = 8;%as a result of different loss fuctions
+nb = 8;%as a result of different loss fuctions
+nc = n;
+nd = n;
+nf = na;
+
+DATA = iddata(y, u, Ts);
+SYS_ARMAX = armax(DATA, [na nb nc nk]);
+G = SYS_ARMAX;
+
+w = logspace(1,log10(pi/Ts),1000);
+Gf = spafdr(diff(data),[],w);
+
+figure()
+compare(G,Gf);
+shg
