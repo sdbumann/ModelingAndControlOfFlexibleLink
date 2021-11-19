@@ -6,9 +6,9 @@ Ts = 5e-3;
 %% 1 input data analysis
 
 % plot u(k) with offset
-figure()
-plot(u)
-title("input u")
+% figure()
+% plot(u)
+% title("input u")
 
 % remove DC offset of u and y
 mean_u = mean(u)
@@ -20,81 +20,81 @@ y=y-y(1); % Remove the mean value of the data
 % u=detrend(u, 1);
 
 % plot u(k) without DC offset
-figure()
-plot(u)
-title("input u with removed DC offset")
-
-% %plot biased autocorrelation of u(k)
-% [Ruu, huu] = xcorr(u, u, 'biased'); %biased less variance (in HF) than biased, but size of peaks is not right anymore
 % figure()
-% plot(Ruu)
-% title("biased autocorrelation of u(k) (by using matlab function)")
+% plot(u)
+% title("input u with removed DC offset")
 % 
-% %plot unbiased autocorrelation of u(k) -> better for example(?)
-% [Ruu, huu] = xcorr(u, u, 'unbiased'); %unbiased higher variance (in HF) than biased
+% % %plot biased autocorrelation of u(k)
+% % [Ruu, huu] = xcorr(u, u, 'biased'); %biased less variance (in HF) than biased, but size of peaks is not right anymore
+% % figure()
+% % plot(Ruu)
+% % title("biased autocorrelation of u(k) (by using matlab function)")
+% % 
+% % %plot unbiased autocorrelation of u(k) -> better for example(?)
+% % [Ruu, huu] = xcorr(u, u, 'unbiased'); %unbiased higher variance (in HF) than biased
+% % figure()
+% % plot(Ruu)
+% % title("unbiased autocorrelation of u(k) (by using matlab function)")
+% 
+% %plot Ruu and Ryu using own intcor function
+% [Ruu, huu]= intcor(u, u); 
+% [Ryu, hyu] = intcor(y, u); % (for periodic signals) width of Hann window for later is given by number of steps untill signal Ryu is 0!!!!
 % figure()
-% plot(Ruu)
-% title("unbiased autocorrelation of u(k) (by using matlab function)")
-
-%plot Ruu and Ryu using own intcor function
-[Ruu, huu]= intcor(u, u); 
-[Ryu, hyu] = intcor(y, u); % (for periodic signals) width of Hann window for later is given by number of steps untill signal Ryu is 0!!!!
-figure()
-plot(huu, Ruu)
-hold on
-plot(hyu, Ryu)
-title("autocorrelation Ruu and correlation Ryu (by using own intcor function)")
-legend("Ruu", "Ryu")
-
-%plot spectral density of u(k)
-Phiuu = (abs(fft(u))).^2;
-figure()
-plot(Phiuu)
-title("spectral densitiy of u(k)")
-
-%% 2 Frequency response of system
-
-%% 2.1 Fourier analysis -> without averaging because we do not have periodic signals
-%                       -> but with Hann window
-% FILT = 1-1/tf('z');
-% y = lsim(FILT,y);
-% y(1) = 0;
-
-data = iddata(y, r, Ts);
-window_length = 30;
-G_fourier = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
-figure
-bode(G_fourier)
-title("Matlab spa function")
-
-%% 2.3 Spectral analysis
-
-ws = 2*pi/Ts;
-N = length(u);
-
-[Ruu, xuu] = xcorr(u, 'biased');
-[Ryu, xyu] = xcorr(y, u, 'biased');
-G_spa_val = fft(Ryu(xyu > 0))./fft(Ruu(xuu > 0));
-G_spa = frd(G_spa_val, (ws/N):(ws/N):((N-1)/N*ws), Ts) ;
-
-% Hann window
-window = hann(2*N);
-window = window(N:2*N-2);
-G_spa_hann_val = fft(window.*Ryu(xyu > 0))./fft(window.*Ruu(xuu > 0));
-G_spa_hann = frd(G_spa_hann_val, (ws/N):(ws/N):((N-1)/N*ws), Ts) ;
-
-figure
-subplot(2, 1, 1)
-bode(G_spa)
-title("Simple spectral analysis")
-subplot(2, 1, 2)
-bode(G_spa_hann)
-title("Spectral analysis with Hann window")
-
-%% 2.4 comparison
-figure
-bode(G_fourier, G_spa_hann);
-legend("Fourier analysis", "Spectral analysis");
+% plot(huu, Ruu)
+% hold on
+% plot(hyu, Ryu)
+% title("autocorrelation Ruu and correlation Ryu (by using own intcor function)")
+% legend("Ruu", "Ryu")
+% 
+% %plot spectral density of u(k)
+% Phiuu = (abs(fft(u))).^2;
+% figure()
+% plot(Phiuu)
+% title("spectral densitiy of u(k)")
+% 
+% %% 2 Frequency response of system
+% 
+% %% 2.1 Fourier analysis -> without averaging because we do not have periodic signals
+% %                       -> but with Hann window
+% % FILT = 1-1/tf('z');
+% % y = lsim(FILT,y);
+% % y(1) = 0;
+% 
+% data = iddata(y, r, Ts);
+% window_length = 30;
+% G_fourier = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
+% figure
+% bode(G_fourier)
+% title("Matlab spa function")
+% 
+% %% 2.3 Spectral analysis
+% 
+% ws = 2*pi/Ts;
+% N = length(u);
+% 
+% [Ruu, xuu] = xcorr(u, 'biased');
+% [Ryu, xyu] = xcorr(y, u, 'biased');
+% G_spa_val = fft(Ryu(xyu > 0))./fft(Ruu(xuu > 0));
+% G_spa = frd(G_spa_val, (ws/N):(ws/N):((N-1)/N*ws), Ts) ;
+% 
+% % Hann window
+% window = hann(2*N);
+% window = window(N:2*N-2);
+% G_spa_hann_val = fft(window.*Ryu(xyu > 0))./fft(window.*Ruu(xuu > 0));
+% G_spa_hann = frd(G_spa_hann_val, (ws/N):(ws/N):((N-1)/N*ws), Ts) ;
+% 
+% figure
+% subplot(2, 1, 1)
+% bode(G_spa)
+% title("Simple spectral analysis")
+% subplot(2, 1, 2)
+% bode(G_spa_hann)
+% title("Spectral analysis with Hann window")
+% 
+% %% 2.4 comparison
+% figure
+% bode(G_fourier, G_spa_hann);
+% legend("Fourier analysis", "Spectral analysis");
 
 %% 3 order of system
 
@@ -114,11 +114,7 @@ figure()
 plot([1:nabmax], loss)
 title('Loss Function for different orders')
 
-order=7; % we can see that it is in region [3:10] -> thus the optimal global order of the system n>=3 
-% SYS_ARX = arx(DATA, [order, order, 1]) ;
-% figure()
-% bode(SYS_ARX)
-% title(['Bode diagram of ARX system with order ', num2str(order)])
+order=7; % we can see that order is >7 -> thus the optimal global order of the system n>=3 
 
 
 %% 3.2 validate global order of sys using pole/zero cancellation
@@ -211,7 +207,7 @@ ylim([-2000 5000])
 %% Frequency domain and residus
 
 % frequency response of sys 
-Mspa = spafdr(diff(DATA_TEST), 12, logspace(1,log10(pi/Ts),1000)) ;
+Mspa = spafdr(diff(DATA_TEST), 4, logspace(1,log10(pi/Ts),1000)) ;
 
 % Frequency response comparison
 figure
@@ -243,10 +239,16 @@ title("State space (N4SID)");
 % thus be white) -> only for ARX, ARMAX and BJ
 % ARMAX good fit in temporel and in frequency domain, also almost validated
 
-%% G is best model
+%% G is best model ARMAX followed by N4SID -> both closely validated
+% QUESTION: is N4SID better because it is better in freq domain? -> but overall worse?
+[u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
+Ts = 5e-3;
+y=y-y(1);
+
 n  = 8;
 na = 8;%as a result of different loss fuctions
 nb = 8;%as a result of different loss fuctions
+nk = 1;
 nc = n;
 nd = n;
 nf = na;
@@ -256,7 +258,7 @@ SYS_ARMAX = armax(DATA, [na nb nc nk]);
 G = SYS_ARMAX;
 
 w = logspace(1,log10(pi/Ts),1000);
-Gf = spafdr(diff(data),[],w);
+Gf = spafdr(diff(DATA),4,w);
 
 figure()
 compare(G,Gf);

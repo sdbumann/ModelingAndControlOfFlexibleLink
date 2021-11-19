@@ -8,7 +8,7 @@ Ts = G.Ts;
 
 %% tune TF controller
 
-TF = tunableTF('TF',7,7,Ts);
+TF = tunableTF('TF',8,8,Ts);
 
 z = tf('z',Ts);
 TF.u = 'e';   TF.y = 'u';
@@ -30,10 +30,10 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 
 
 
-%% silver medium -> meh result -> with order 7,7
-% W1= 0.003/(z-1) + 0.00001/(z-1)^2;
-% W2=tf(db2mag(-3.5));
-% W3= tf(db2mag(-13));
+%% silver big -> works but not good ->  mit order 7,7
+% W1= 0.01/(z-1) + 0.0001/(z-1)^2;
+% W2=tf(db2mag(-20));
+% W3= tf(db2mag(-20));
 % 
 % Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
 % Req.Openings = 'y';
@@ -41,11 +41,10 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % softReq =   [ Req ];
 % hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
-
-%% silver medium -> meh result
-W1= 0.003/(z-1) + 0.00001/(z-1)^2;
-W2=tf(db2mag(-3.6));
-W3= tf(db2mag(-13));
+%% silver big -> works but not good -> 8,8(?)
+W1= 0.025/(z-1) + 0.00015/(z-1)^2;
+W2=tf(db2mag(-6));
+W3= tf(db2mag(-16));
 
 Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
 Req.Openings = 'y';
@@ -53,19 +52,8 @@ Req.Openings = 'y';
 softReq =   [ Req ];
 hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
-%% blue medium -> meh result -> with order 7,7
-% W1= 0.08/(z-1) + 0.0005/(z-1)^2;
-% W2=tf(db2mag(-10));
-% W3= tf(db2mag(-11));
-% 
-% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
-% Req.Openings = 'y';
-% 
-% softReq =   [ Req ];
-% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
-
 %%
-opts = systuneOptions('RandomStart', 0, 'Display', 'sub');
+opts = systuneOptions('RandomStart', 99, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
