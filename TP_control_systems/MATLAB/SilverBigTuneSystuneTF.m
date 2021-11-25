@@ -8,15 +8,27 @@ Ts = G.Ts;
 
 %% tune TF controller
 
-TF = tunableTF('TF',15,15,Ts);
-% TF.Denominator.Value(2:end-6) = 0;
-% TF.Numerator.Value(1:end-6) = 0;
+% TF_poles = tunableTF('TF_poles',2,2,Ts);
+% TF_poles.Denominator.Value(1) = 1;
+% TF_poles.Denominator.Free(1) = 0;
+% TF_poles.Denominator.Value(2) = 2*1.0781;
+% TF_poles.Denominator.Free(2) = 0;
+% % TF_poles.Denominator.Value(3) = prod(-zero(G) .* (abs(zero(G))>1) -(abs(zero(G))>1)+1);
+% TF_poles.Denominator.Value(3) =  (1.0781 - 0.4746i)*(1.0781 + 0.4746i);
+% TF_poles.Denominator.Free(3) = 0;
 
-TF.Denominator.Value(end) = 0;
-TF.Numerator.Value(end) = 0;
-TF.Denominator.Value(1) = 1;
-TF.Denominator.Value(2) = 0;
-TF.Denominator.Value(3) = prod(-zero(G) .* (abs(zero(G))>1) -(abs(zero(G))>1)+1);
+TF = tunableTF('TF',9,9,Ts);
+TF.Denominator.Value(end-1:end) = 0;   % add double integrator: set last denominator entry to zero
+TF.Denominator.Free(end-1:end) = 0;    % fix it to zero
+
+% TF = tunableTF('TF',TF_poles*TF_base);
+
+
+% TF.Denominator.Value(end) = 0;
+% TF.Numerator.Value(end) = 0;
+% TF.Denominator.Value(1) = 1;
+% TF.Denominator.Value(2) = 0;
+% TF.Denominator.Value(3) = prod(-zero(G) .* (abs(zero(G))>1) -(abs(zero(G))>1)+1);
 
 z = tf('z',Ts);
 TF.u = 'e';   TF.y = 'u';
@@ -49,19 +61,31 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % softReq =   [ Req ];
 % hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
-%% silver big -> works but not good -> 8,8(?)
-W1= tf(db2mag(-40));
-W2=tf(db2mag(-40));
-W3= tf(db2mag(-40));
+%% silver big -> works but not good -> 9,9 + double integrator
+% W1= 0.01/(z-1) + 0.0001/(z-1)^2;
+% W2=tf(db2mag(-20));
+% W3= tf(db2mag(-20));
+% 
+% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
+% Req.Openings = 'y';
+% 
+% softReq =   [ Req ];
+% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
+
+%% silver big -> works but not good -> 9,9 + double integrator
+W1= 0.01/(z-1) + 0.0001/(z-1)^2;
+W2=tf(db2mag(-4));
+W3= tf(db2mag(-10));
 
 Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
 Req.Openings = 'y';
 
-softReq =   [  ];
+softReq =   [ Req ];
 hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
+
 %%
-opts = systuneOptions('RandomStart', 9, 'Display', 'sub');
+opts = systuneOptions('RandomStart', 19, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
