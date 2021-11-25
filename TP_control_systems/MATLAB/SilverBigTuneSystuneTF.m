@@ -8,7 +8,15 @@ Ts = G.Ts;
 
 %% tune TF controller
 
-TF = tunableTF('TF',8,8,Ts);
+TF = tunableTF('TF',15,15,Ts);
+% TF.Denominator.Value(2:end-6) = 0;
+% TF.Numerator.Value(1:end-6) = 0;
+
+TF.Denominator.Value(end) = 0;
+TF.Numerator.Value(end) = 0;
+TF.Denominator.Value(1) = 1;
+TF.Denominator.Value(2) = 0;
+TF.Denominator.Value(3) = prod(-zero(G) .* (abs(zero(G))>1) -(abs(zero(G))>1)+1);
 
 z = tf('z',Ts);
 TF.u = 'e';   TF.y = 'u';
@@ -42,18 +50,18 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 %% silver big -> works but not good -> 8,8(?)
-W1= 0.025/(z-1) + 0.00015/(z-1)^2;
-W2=tf(db2mag(-6));
-W3= tf(db2mag(-16));
+W1= tf(db2mag(-40));
+W2=tf(db2mag(-40));
+W3= tf(db2mag(-40));
 
 Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
 Req.Openings = 'y';
 
-softReq =   [ Req ];
+softReq =   [  ];
 hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 %%
-opts = systuneOptions('RandomStart', 99, 'Display', 'sub');
+opts = systuneOptions('RandomStart', 9, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
