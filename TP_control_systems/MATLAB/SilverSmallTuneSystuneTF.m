@@ -8,7 +8,7 @@ Ts = G.Ts;
 
 %% tune TF controller
 
-TF = tunableTF('TF',7,7,Ts);
+TF = tunableTF('TF',4,4,Ts);
 % TF.Denominator.Value(end) = 0;   % add one integrator: set last denominator entry to zero
 % TF.Denominator.Free(end) = 0;    % fix it to zero
 
@@ -31,43 +31,20 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % constraint || W3 U ||_\infty <1
 
 
-
-%% silver big -> works (more or less) -> 8,8 with one integrator
-% W1= 0.005/(z-1) + 0.00005/(z-1)^2;
-% W2=tf(db2mag(-3));
-% W3= tf(db2mag(-12));
-% 
-% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
-% Req.Openings = 'y';
-% 
-% softReq =   [ Req ];
-% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
-
-%% silver big -> it woorks!! -> 7,7 without integrator -> randomstart 19
-% W1= 0.005/(z-1) + 0.00001/(z-1)^2;
-% W2=tf(db2mag(-3));
-% W3 = makeweight(db2mag(-6), 100, db2mag(60));
-% 
-% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
-% Req.Openings = 'y';
-% 
-% softReq =   [ Req ];
-% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
-
-%% silver big -> it woorks!! -> 7,7 without integrator -> randomstart 19 amplitude: 12; Period 10000 
-W1= 0.005/(z-1) + 0.00001/(z-1)^2;
-W2=tf(db2mag(-3));
-W3 = makeweight(db2mag(-6), 100, db2mag(60));
+%% silver small -> it woorks!! -> 4,4 without integrator -> randomstart 9 amplitude: 12; Period 10000 
+W1 = 0.03/(z-1) + 0.00003/(z-1)^2;
+W2 = tf([db2mag(-1)],[1], Ts); %=db2mag(-6)
+W3 = tf([db2mag(-18)],[1], Ts);
 
 Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
 Req.Openings = 'y';
 
-softReq =   [ Req ];
+softReq =   [  ];
 hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 
 %%
-opts = systuneOptions('RandomStart', 24, 'Display', 'sub');
+opts = systuneOptions('RandomStart', 9, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
