@@ -260,7 +260,7 @@ SYS_ARMAX = armax(DATA, [na nb nc nk]);
 G = SYS_ARMAX;
 
 w = logspace(1,log10(pi/Ts),1000);
-Gf = spafdr(diff(DATA),2,w);
+Gf = spafdr(diff(DATA),[],w);
 
 figure()
 compare(G,Gf);

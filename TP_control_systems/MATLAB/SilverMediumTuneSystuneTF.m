@@ -3,7 +3,6 @@ clc
 close all
 % clear
 
-% load('half_ruler_model_array.mat');
 Ts = G.Ts;
 
 %% tune TF controller

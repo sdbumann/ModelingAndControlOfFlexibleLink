@@ -14,6 +14,7 @@
 			<Property Name="NI.DISK" Type="Bool">true</Property>
 		</Item>
 		<Item Name="Main.vi" Type="VI" URL="../Main.vi"/>
+		<Item Name="MainCascaded.vi" Type="VI" URL="../MainCascaded.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="AnalogInputs.ctl" Type="VI" URL="/&lt;vilib&gt;/Quanser/Rapid Control Prototyping Toolkit/hardware/HIL Initialize/HIL InitializeSource.llb/AnalogInputs.ctl"/>
@@ -57,7 +58,9 @@
 				<Item Name="subInitializeOtherOutputs.vi" Type="VI" URL="/&lt;vilib&gt;/Quanser/Rapid Control Prototyping Toolkit/hardware/HIL Initialize/HIL InitializeSource.llb/subInitializeOtherOutputs.vi"/>
 				<Item Name="subInitializePWMOutputs.vi" Type="VI" URL="/&lt;vilib&gt;/Quanser/Rapid Control Prototyping Toolkit/hardware/HIL Initialize/HIL InitializeSource.llb/subInitializePWMOutputs.vi"/>
 			</Item>
+			<Item Name="complimentaryFilter.vi" Type="VI" URL="../../../../../Desktop/complimentaryFilter.vi"/>
 			<Item Name="hil.framework" Type="Document" URL="/&lt;resource&gt;/hil.framework"/>
+			<Item Name="lowpas.vi" Type="VI" URL="../../../../../Desktop/lowpas.vi"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>

@@ -1,14 +1,51 @@
-%% 
-clc
 close all
-% clear
+clear
+%%
 
-% load('half_ruler_model_array.mat');
-Ts = G.Ts;
+
+[u, y, v, r, t] = ReadBinaryVel('../LabVIEW/logsSilverMediumSpeedAmpli5Ts1ms.bin');
+
+
+% logs_temp_vel2 -> with amplitude 10  -> with old input u -> Ts = 0.005
+% logs_temp_vel3 -> with amplitude 16  -> with old input u -> Ts = 0.005
+% logs_temp_vel4 -> with amplitude 10  -> with new input u -> Ts = 0.005
+% logs_temp_vel5 -> with amplitude 100 -> with new input u -> Ts = 0.005
+% logs_temp_vel6 -> with amplitude 100 -> with new input u -> Ts = 0.010
+
+plot(v)
+shg
+
+%%
+
+Ts =1e-3
+data = iddata(v,r,Ts);
+
+plot(data)
+shg
+
+%%
+
+w = logspace(0,log10(pi/Ts),400);
+% Ge = gimpulse_lsq(diff(data),800,1,0)
+Ge = oe(data, [24 24 1]) ;
+G = Ge;
+Gf = spafdr((data),[],w);
+
+figure
+bode(Ge,Gf)
+
+
+%%
+% K = pidtune(Ge,'pidf',6);
+% S = feedback(1,Ge*K);
+% step(S)
+% shg
+% FormatRST(K)
+
 
 %% tune TF controller
 
-TF = tunableTF('TF',5,5,Ts);
+TF = tunableTF('TF',7,7,Ts);
 % TF.Denominator.Value(end) = 0;   % add one integrator: set last denominator entry to zero
 % TF.Denominator.Free(end) = 0;    % fix it to zero
 
@@ -32,10 +69,12 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 
 
 
-%% silver small -> it woorks!! (but not for disturbance rejection) -> 5,5 without integrator -> randomstart 9; amplitude: 12; Period 10000 
-% W1 = 0.1/(z-1) + 0.00006/(z-1)^2;
-% W2 = tf([db2mag(-4)],[1], Ts); %=db2mag(-6)
-% W3 = tf([db2mag(-18)],[1], Ts);
+%% kinda works with 7,7
+% W1= 0.0008/(z-1) + 0.000004/(z-1)^2;
+% % W2= tf(db2mag(-1));
+% W2= makeweight(db2mag(-1), 100, db2mag(60));
+% % W3= tf(db2mag(15));
+% W3 = makeweight(db2mag(-0.1), 10, db2mag(60)) - tf(db2mag(18));
 % 
 % Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
 % Req.Openings = 'y';
@@ -43,24 +82,12 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % softReq =   [ Req ];
 % hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
-%% silver small -> it woorks!! -> 5,5 without integrator -> randomstart 19; amplitude: 12; Period 10000 
-% % W1 = 0.040/(z-1) + 0.00002/(z-1)^2 + 0.00000001/(z-1)^3;
-% W1 = makeweight(db2mag(116), 90, db2mag(-38));
-% W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
-% W3 = tf([db2mag(-16)],[1], Ts);
-% 
-% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
-% Req.Openings = 'y';
-% 
-% softReq =   [ Req ];
-% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
-
-
-%% silver small -> it woorks!! -> 5,5 without integrator -> randomstart 4; amplitude: 12; Period 10000 
-W1 = 0.040/(z-1) + 0.00002/(z-1)^2 + 0.000000007/(z-1)^3;
-W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
-W3 = tf([db2mag(-16)],[1], Ts);
-
+%% kinda works with 7,7 -> with new input
+W1= 0.0008/(z-1) + 0.00001/(z-1)^2;
+% W2= tf(db2mag(-1));
+W2= makeweight(db2mag(-2), 100, db2mag(60));
+% W3= tf(db2mag(18));
+W3 = makeweight(db2mag(30), 10, db2mag(-2)) + makeweight(db2mag(-2), 4, db2mag(100)); 
 Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
 Req.Openings = 'y';
 
@@ -68,7 +95,7 @@ softReq =   [ Req ];
 hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 %%
-opts = systuneOptions('RandomStart', 14, 'Display', 'sub');
+opts = systuneOptions('RandomStart', 19, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
@@ -88,8 +115,6 @@ plotResult(TF, G, W1, W2, W3)
 
 %%
 % plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
-    
-
 
 %%
 function [] = plotResult(K_, G, W1, W2, W3)
@@ -135,6 +160,7 @@ function [] = plotResult(K_, G, W1, W2, W3)
     title('Control Signal U (after step)')
 end
 
+
 %%
  function FormatRST(R,S,T)
  % K: controller to test on the active suspenssion
@@ -152,4 +178,30 @@ end
  fclose(fileID);
 
  end
+
+% 
+% function FormatRST(K)
+% 
+% [R,S] = tfdata(K,'v');
+% T = R; % in future we can add the gettho low pass here in T
+% 
+% 
+% 
+% 
+% % K: controller to test on the active suspenssion
+% % will create a dataRST.bin
+% 
+% % Send the .bin file to acs@epfl.ch
+% if numel(T) < numel(R)
+%     T(numel(R)) = 0;
+% end
+% 
+% name = 'dataRST_vel';
+% 
+% fileID = fopen(strcat([name,'.bin']), 'w');
+% fwrite(fileID, [numel(R);R(:);S(:);T(:)]', 'double','l');
+% fclose(fileID);
+% 
+% end
+
 

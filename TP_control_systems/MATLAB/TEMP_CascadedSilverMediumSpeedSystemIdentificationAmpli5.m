@@ -1,13 +1,16 @@
 clc
 close all
 clear
-[u,y,r,t] = ReadBinary('./logs_silver_small.bin');
-Ts = 5e-3;
+
+[u, y, v, r, t] = ReadBinaryVel('../LabVIEW/logsSilverMediumSpeedAmpli5Ts1ms.bin');
+% [u, y, v, r, t] = ReadBinaryVel('../LabVIEW/logsSilverMediumSpeedAmpli5Ts1ms.bin');
+% [u, y, v, r, t] = ReadBinaryVel('../LabVIEW/logsSilverMediumSpeedAmpli3Ts1ms.bin');
+% [u, y, v, r, t] = ReadBinaryVel('../LabVIEW/logsSilverMediumSpeedAmpli1Ts1ms.bin');
+Ts = 1e-3;
 %% 1 input data analysis
 
 % remove DC offset of u and y
-mean_u = mean(u)
-y=y-y(1); % Remove the mean value of the data
+v=v-v(1); % Remove the mean value of the data
 % u=detrend(u, 0); % Remove the mean value of the data
 
 % % remove linear trend of u and y
@@ -16,11 +19,11 @@ y=y-y(1); % Remove the mean value of the data
 
 %% 3 order of system
 
-DATA = iddata(y, r, Ts); % make to dataformat that arx and armax can use it
+DATA = iddata(v, r, Ts); % make to dataformat that arx and armax can use it
 
 %% 3.1 estimation of global order using loss function
 SYS_ARX = [];
-nabmax=20   ;
+nabmax=50;
 loss = zeros(nabmax,1);
 for i = 1:nabmax
     %SYS_ARX=armax(DATA, [na, nb, nk])
@@ -32,7 +35,7 @@ figure()
 plot([1:nabmax], loss)
 title('Loss Function for different orders')
 
-order=5; % we can see that it is in region [5:20] -> thus the optimal global order of the system n>=3 
+order=24; % we can see that it is in region [24:50] -> thus the optimal global order of the system n>=3 
 % SYS_ARX = arx(DATA, [order, order, 1]) ;
 % figure()
 % bode(SYS_ARX)
@@ -43,14 +46,15 @@ order=5; % we can see that it is in region [5:20] -> thus the optimal global ord
 figure()
 for i = 1:10
     %SYS_ARMAX=armax(DATA, [na, nb, nc, nk])
-    SYS_ARMAX=armax(DATA, [i, i, i, 1]);
+    SYS_ARMAX=armax(DATA, [i+5, i+5, i+5, 1]);
     subplot(2,5,i)
     h=iopzplot(SYS_ARMAX); % plot the zeros and poles of SYS_ARMAC
     showConfidence(h,2) % plot their confidence intervals (+/-2sigma).
-    title(['order ', num2str(i)])
+    xlim([-1 1])
+    title(['order ', num2str(i+5)])
 end
-% thus we can say that the order is 7 -> n=7
-n=7
+% thus we can say that the order is 20 -> n=20
+n=10
 
 %% 3.3 estimation of delay = nk
 OElength=30;
@@ -64,14 +68,14 @@ title(sprintf("Impulse response to validate if %d samples are enough", OElength)
 %in our case: example:
 %ans =
 
-%          0    0.0872   -0.0830    0.0382    0.0104
-%          0    0.0015    0.0016    0.0016    0.0016
-% 0.0872 is not element of [-0.0015, 0.0015] -> thus it is real value and not noise
-% thus delay is 1 -> nk=1
-nk=1; % nk=d+1
+%         0    0.2308    8.7438   19.5204   21.4669
+%         0    0.9110    0.9136    0.9163    0.9167
+% 8.7438 is not element of [-0.9136, 0.9136] -> thus it is real value and not noise
+% thus delay is 2 -> nk=2
+nk=2; % nk=d+1
 
 %% 3.4 estimation of nb and na
-n_ = 20
+n_ = 30
 
 loss=zeros(n_,1);
 for i = 1:n_
@@ -83,8 +87,8 @@ plot([1:n_], loss)
 title(['Loss function for varying na = nb'])
 xlabel('na=nb')
 
-na=7%as a result of different loss fuctions
-nb=7%as a result of different loss fuctions
+na=10%as a result of different loss fuctions
+nb=10%as a result of different loss fuctions
 
 % %% 3.5 look at "optimal" order according to matlab 
 % NN = struc([1:10], [1:10], [1:10]);
@@ -107,8 +111,8 @@ nf = na;
 N2 = length(u)/2;
 u_test = u(1:N2);
 u_train = u((N2+1):end);
-y_test = y(1:N2);
-y_train = y((N2+1):end);
+y_test = v(1:N2);
+y_train = v((N2+1):end);
 
 DATA_TRAIN = iddata(y_train, u_train, Ts);
 DATA_TEST = iddata(y_test, u_test, Ts);
@@ -128,7 +132,7 @@ compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
 %% Frequency domain and residus
 
 % frequency response of sys 
-Mspa = spafdr(diff(DATA_TEST), 3, logspace(1,log10(pi/Ts),1000)) ;
+Mspa = spafdr(diff(DATA_TEST), [], logspace(1,log10(pi/Ts),1000)) ;
 
 % Frequency response comparison
 figure
@@ -158,28 +162,82 @@ title("State space (N4SID)");
 
 % autocorrelation is only for models with a noise estimation (noise should
 % thus be white) -> only for ARX, ARMAX and BJ
-% ARMAX good fit in temporel and in frequency domain, also almost validated
+% OE good fit in temporel and in frequency domain, also almost validated
 
 %% G is best model
-[u,y,r,t] = ReadBinary('./logs_silver_small.bin');
-Ts = 5e-3;
-y=y-y(1);
+% Amplitude 10
+[u, v, v, r, t] = ReadBinaryVel('../LabVIEW/logsSilverMediumSpeedAmpli10Ts1ms.bin');
+Ts = 1e-3;
+v=v-v(1);
 
-n  = 7;
-na = 7;%as a result of different loss fuctions
-nb = 7;%as a result of different loss fuctions
-nk = 1;
+n  = 20;
+na = 20;%as a result of different loss fuctions
+nb = 20;%as a result of different loss fuctions
+nk = 2;
 nc = n;
 nd = n;
 nf = na;
 
-DATA = iddata(y, u, Ts);
-SYS_ARMAX = armax(DATA, [na nb nc nk]);
-G = SYS_ARMAX;
+DATA = iddata(v, u, Ts);
+SYS_OE = oe(DATA, [na nb nk]);
+G10 = SYS_OE;
 
 w = logspace(1,log10(pi/Ts),1000);
-Gf = spafdr(diff(DATA),3,w);
+Gf = spafdr(diff(DATA),[],w);
 
 figure()
-compare(G,Gf);
+compare(G10,Gf);
+shg
+
+% Amplitude 5
+[u, v, v, r, t] = ReadBinaryVel('../LabVIEW/logsSilverMediumSpeedAmpli5Ts1ms.bin');
+Ts = 1e-3;
+v=v-v(1);
+
+n  = 20;
+na = 20;%as a result of different loss fuctions
+nb = 20;%as a result of different loss fuctions
+nk = 2;
+nc = n;
+nd = n;
+nf = na;
+
+DATA = iddata(v, u, Ts);
+SYS_OE = oe(DATA, [na nb nk]);
+G5 = SYS_OE;
+
+w = logspace(1,log10(pi/Ts),1000);
+Gf = spafdr(diff(DATA),[],w);
+
+figure()
+compare(G5,Gf);
+shg
+
+% Amplitude 3
+[u, v, v, r, t] = ReadBinaryVel('../LabVIEW/logsSilverMediumSpeedAmpli3Ts1ms.bin');
+Ts = 1e-3;
+v=v-v(1);
+
+n  = 20;
+na = 20;%as a result of different loss fuctions
+nb = 20;%as a result of different loss fuctions
+nk = 2;
+nc = n;
+nd = n;
+nf = na;
+
+DATA = iddata(v, u, Ts);
+SYS_OE = oe(DATA, [na nb nk]);
+G3 = SYS_OE;
+
+w = logspace(1,log10(pi/Ts),1000);
+Gf = spafdr(diff(DATA),[],w);
+
+figure()
+compare(G3,Gf);
+shg
+
+figure()
+bode(G10, G5, G3)
+legend
 shg
