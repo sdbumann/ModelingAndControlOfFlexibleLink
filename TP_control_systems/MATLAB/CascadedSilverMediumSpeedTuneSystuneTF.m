@@ -86,9 +86,33 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 %% works but not ideal (after step goes fast and then stopps and goes to final speed) system with 7,7 -> take amplitude of >= 100
+% W1= 0.00000001/(z-1) + 0.00000000005/(z-1)^2;
+% % W2= tf(db2mag(4));
+% W2= makeweight(db2mag(-2), 800, db2mag(200));
+% W3 = makeweight(db2mag(-1), 10, db2mag(100));
+% % W3 = tf(db2mag(30));
+% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
+% Req.Openings = 'y';
+% 
+% softReq =   [ Req ];
+% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
+
+%% works but not ideal (not zeros steady state eroor) system with 7,7 -> take amplitude of >= 100
+% W1= 0.00000001/(z-1) + 0.00000000005/(z-1)^2;
+% % W2= tf(db2mag(4));
+% W2 = makeweight(db2mag(20), 4, db2mag(-2)) + makeweight(db2mag(-2), 10, db2mag(200)); 
+% W3 = makeweight(db2mag(-1), 10, db2mag(100));
+% % W3 = tf(db2mag(30));
+% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
+% Req.Openings = 'y';
+% 
+% softReq =   [ Req ];
+% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
+
+%% temp -> system with 7,7 -> take amplitude of >= 100
 W1= 0.00000001/(z-1) + 0.00000000005/(z-1)^2;
 % W2= tf(db2mag(4));
-W2= makeweight(db2mag(-2), 800, db2mag(200));
+W2= makeweight(db2mag(-2), 800, db2mag(100));
 W3 = makeweight(db2mag(-1), 10, db2mag(100));
 % W3 = tf(db2mag(30));
 Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
@@ -106,7 +130,6 @@ opts = systuneOptions('RandomStart', 0, 'Display', 'sub');
 %%
 
 TF = getBlockValue(CL,'TF');
-
 
 
 %% convert to RST controller

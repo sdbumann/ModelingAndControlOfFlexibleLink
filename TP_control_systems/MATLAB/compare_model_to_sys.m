@@ -14,3 +14,9 @@ compare(data_val,feedback(G(:,:,1)*tf(R,S,Ts),1),feedback(G(:,:,2)*tf(R,S,Ts),1)
 % compare(data_val,feedback(G_105mm*tf(Rarray(idx,:),Sarray(idx,:), Ts),1)); % compare identified 
 legend('data', 'G10', 'G5', 'G3')
 shg
+
+%%
+% data_temp = iddata(u,r,Ts);
+% Gf_temp = spafdr(data_temp);
+% figure()
+% bodemag(Gf_temp)

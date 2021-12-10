@@ -1,5 +1,5 @@
 
-[u,y,r,t] = ReadBinary('../LabView/logs.bin');
+[u,y, v,r,t] = ReadBinaryVel('../LabView/logs.bin');
 Ts = 5e-3;
 data_val = iddata(y,r,Ts);
 %%
@@ -33,7 +33,12 @@ G = Ge/FILT;
 % legend('G70mm', 'G50mm', 'G30mm', 'G15mm', 'G')
 % shg
 
+K  = pidtune(G,'pidf')
 
+[R,S] = tfdata(K,'v',10)
+T=  R;
+
+FormatRST(R,S,T)
 %%
 % [Kp,Ki,Kd,Tf,Ts] = piddata(C)
 % Ki = 1  *Ki
@@ -54,4 +59,21 @@ G = Ge/FILT;
 % 
 % end
 
-     
+      function FormatRST(R,S,T)
+ % K: controller to test on the active suspenssion
+ % will create a dataRST.bin
+
+ % Send the .bin file to acs@epfl.ch
+ if numel(T) < numel(R)
+     T(numel(R)) = 0;
+ end
+
+ name = 'dataRST';
+
+ fileID = fopen(strcat([name,'.bin']), 'w');
+ fwrite(fileID, [numel(R);R(:);S(:);T(:)]', 'double','l');
+ fclose(fileID);
+
+ end
+
+
