@@ -9,7 +9,7 @@ Ts = G.Ts;
 %% tune TF controller
 
 TF = tunableTF('TF',7,7,Ts);
-TF.Denominator.Value(end) = 0;   % add one integrator: set last denominator entry to zero
+TF.Denominator.Value(end) = 0;   % fix one value that can not be changed
 TF.Denominator.Free(end) = 0;    % fix it to zero
 
 z = tf('z',Ts);
@@ -55,18 +55,6 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 %% silver big -> it woorks!! -> 7,7 without integrator -> randomstart 19 amplitude: 12; Period 10000 
-W1= 0.005/(z-1) + 0.00001/(z-1)^2;
-W2=tf(db2mag(-3));
-W3 = makeweight(db2mag(-6), 100, db2mag(60));
-
-Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
-Req.Openings = 'y';
-
-softReq =   [ Req ];
-hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
-
-
-%% silver big -> it wooooorks!! -> 7,7 with integrator -> randomstart 19 amplitude: 12; Period 10000 
 % W1= 0.005/(z-1) + 0.00001/(z-1)^2;
 % W2=tf(db2mag(-3));
 % W3 = makeweight(db2mag(-6), 100, db2mag(60));
@@ -78,11 +66,33 @@ hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r
 % hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 
+%% silver big -> it wooooorks better!! -> 7,7 with one value set to 0 -> randomstart 39; amplitude: 12; Period 10000 
+W1 = 0.005/(z-1) + 0.00001/(z-1)^2;
+W2 = tf(db2mag(-3));
+W3 = makeweight(db2mag(-6), 100, db2mag(60));
+
+Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
+Req.Openings = 'y';
+
+softReq =   [ Req ];
+hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
+
+
+%% it works with weighting functions that are discrete -> 7,7 with one value set to 0  -> randomstart 19; amplitude:12; Period 10000 
+% W1 = 0.0055/(z-1) + 0.00002/(z-1)^2;
+% W2 = makeweight(db2mag(-3), 100, db2mag(100), Ts);
+% W3 = makeweight(db2mag(-6), 100, db2mag(100), Ts);
+% 
+% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
+% Req.Openings = 'y';
+% 
+% softReq =   [ Req ];
+% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 
 
 %%
-opts = systuneOptions('RandomStart', 24, 'Display', 'sub');
+opts = systuneOptions('RandomStart', 19, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
@@ -100,9 +110,6 @@ FormatRST(R_,S_,T_)
 %%
 plotResult(TF, G, W1, W2, W3)
 
-%%
-% plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
-    
 
 
 %%
@@ -116,7 +123,7 @@ function [] = plotResult(K_, G, W1, W2, W3)
     
     subplot(3,2,2)
     step(S);
-    xlim([0 0.8])
+%     xlim([0 0.8])
     title('Step Response S')
 
     subplot(3,2,3)
@@ -134,7 +141,7 @@ function [] = plotResult(K_, G, W1, W2, W3)
     
     subplot(3,2,4)
     step(T);
-    xlim([0 0.8])
+%     xlim([0 0.8])
     title('Step Response T')
     
     subplot(3,2,5)
@@ -145,7 +152,7 @@ function [] = plotResult(K_, G, W1, W2, W3)
 
     subplot(3,2,6)
     step(U);
-    xlim([0 0.8])
+%     xlim([0 0.8])
     title('Control Signal U (after step)')
 end
 

@@ -64,6 +64,7 @@ while iter < params.maxIter
     controller = system.controller;
 
 end
-
+if iter > 0
 sol = rmfield(sol,'satisfyConstraints');
+end
 end
