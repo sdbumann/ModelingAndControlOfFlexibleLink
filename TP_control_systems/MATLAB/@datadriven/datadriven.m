@@ -12,6 +12,14 @@ classdef datadriven
      [ctrl,obj,dt] = sisoFF(SYS,OBJ,CON,PAR)      
      [SYS, OBJ, CON, PAR] = emptyStruct
      
+     ctrl = formatController(K, order);
+     
+     % Some parsers
+     struct_ = system(varargin);
+     struct_ = constraints(varargin);
+     struct_ = objectives(varargin);
+     struct_ = parameters(varargin);
+     
     end  
 
 end

@@ -18,19 +18,14 @@ M = Model('DATA-DRIVEN OPTIMIZATION');
 nCon = length(W); % number of constraint
 nMod = length(system.model); % number of different models
 
-scaObj = 1;
+
 if isempty(sol)
     % solution struct is not provided: 1st iter
     sol.satisfyConstraints  = 0;
     sol.nIter = 0;
-else
-    if (sol.H2 || sol.Hinf) && (sol.obj < 1e5)
-        % scale such that objective is approx 2 (better nuerically scaled)
-        scaObj = 1/min(1e4,max(1e-4,0.5*sol.obj));
-    end
 end
 
-autoScaling =  max(abs(controller.num),[],'all')/parameters.scaling;
+autoScaling =  min(1e3,max(1e-1,max(abs(controller.num),[],'all')));
 if autoScaling==0
     autoScaling = 1;
 end
@@ -125,20 +120,19 @@ for mod =  1: nMod
     end
     
     Q = controller.theta(system.model(:,:,mod));
-    %X_c = Xlpv*Q;
+    X_c = Xlpv*Q;
     Y_c = Ylpv*Q;
     X_n = Expr.mul(X,Matrix.dense(Q));
     Y_n = Expr.mul(Y,Matrix.dense(Q));
     XY_n = Expr.vstack(X_n,Y_n);
     
     Yc = ZFy*Y_c; % Xc = Xcs.*Fx; % Frequency response Kinit with the fixed parts
-    
+    Xc = ZFx*X_c; % Xc = Xcs.*Fx; % Frequency response Kinit with the fixed parts
     
     PLANT = resp(system.model(:,:,mod),W)*autoScaling; % Model Frequency response
     Denominator = abs(1+PLANT.*KLPV_loc);
     
-    x1 = 2.*real(ZFy.*conj(Yc));
-    z1 = Expr.sub( Expr.mul(Matrix.dense(x1),Y_n), real(conj(Yc).*Yc));
+    
     
     %% Stability constraint
     
@@ -150,7 +144,7 @@ for mod =  1: nMod
         
         zExtended = [zstart;z;zfinish];
         
-        ZyExtended = (parameters.radius*zExtended).^((szy-1):-1:0)./([conj(z(1));z;conj(z(end))].^szy);
+        ZyExtended = (parameters.radius*zExtended).^((szy-1):-1:0);
         YcsExtended= ZyExtended*(Y_c);
         dY = getNormalDirection(YcsExtended);
         
@@ -163,17 +157,20 @@ for mod =  1: nMod
     
     %% OBJECTIVE
     if  (sol.satisfyConstraints)
-        
+        x1 = 2.*real(ZFy.*conj(Yc));
+         z1 = Expr.sub( Expr.mul(Matrix.dense(x1),Y_n), real(conj(Yc).*Yc));
         % H_inf objectives
         % Reminder : rotated cones 2*x1*x2 ≥ ||x3||^2, ||.||  Euclidean norm
         if (~isempty(objective.inf.W1))
             
-            x2 =   Expr.mul(0.5,gamma_Inf) ;
+            scaling = 1./abs((-PLANT.*Xc+Yc)./Denominator.*resp(objective.inf.W1,W)./Yc);
             
-            x3_d = [-PLANT.*ZFx,ZFy]./Denominator.*resp(objective.inf.W1,W)*sqrt(scaObj);
+            x2 =   Expr.mulElm(Matrix.dense(0.5*scaling),gamma_Inf) ;
+            x3_d = [-PLANT.*ZFx,ZFy]./Denominator.*resp(objective.inf.W1,W).*sqrt(scaling);
             x3 =  Expr.stack(1, Expr.mul(Matrix.dense(real(x3_d)),XY_n),Expr.mul(Matrix.dense(imag(x3_d)),XY_n));
-            M.constraint((Expr.stack(1,z1,x2,x3)), Domain.inRotatedQCone());
             
+
+            M.constraint(Expr.hstack(z1,x2,x3), Domain.inRotatedQCone());  
         end % END Hinf
         
         % H2
@@ -181,52 +178,55 @@ for mod =  1: nMod
             gamma_2   = gamma_2_mmod.slice([0,mod-1],[nCon,mod]);
             M.constraint(Expr.sub(obj_2,Expr.dot(integ,gamma_2)),Domain.greaterThan(0));
             
-            x2 =   Expr.mul(0.5,gamma_2) ;
+            scaling = 1./abs((-PLANT.*Xc+Yc)./Denominator.*resp(objective.two.W1,W)./Yc);
             
-            x3_d = [-PLANT.*ZFx,ZFy]./Denominator.*resp(objective.two.W1,W)*sqrt(scaObj);
+            x2 =   Expr.mulElm(Matrix.dense(0.5*scaling),gamma_2) ;
+            x3_d = [-PLANT.*ZFx,ZFy]./Denominator.*resp(objective.two.W1,W).*sqrt(scaling);
             x3 =  Expr.stack(1, Expr.mul(Matrix.dense(real(x3_d)),XY_n),Expr.mul(Matrix.dense(imag(x3_d)),XY_n));
-            M.constraint((Expr.stack(1,z1,x2,x3)), Domain.inRotatedQCone());
+            
+
+            M.constraint(Expr.hstack(z1,x2,x3), Domain.inRotatedQCone());
         end
         
     end
     
     %% CONSTRAINTS
-    if ~isempty(constraint.W1) || ~isempty(constraint.W4)
-        z2 = Expr.mul(Matrix.dense(0.5*ones(nCon,1)), Expr.add(slack.pick(0),1));
-        % Reminder : rotated cones 2*z1*z2 ≥ ||z3||^2, ||.||  Euclidean norm
-        W1 = respOrZero(constraint.W1,W,PLANT);
-        W4 = respOrZero(constraint.W4,W,PLANT/autoScaling);
+    x1 = Expr.sub( Expr.mul(Matrix.dense( 2.*real(ZFy.*conj(Yc))),Y_n), real(conj(Yc).*Yc));
+ 
+    if (~isempty(constraint.W1) || ~isempty(constraint.W4))
+        x2 = Expr.add(0.5*ones(nCon,1), Expr.mul(Matrix.dense(0.5*ones(nCon,1)),slack.pick(0)));
+        % batch W1 and W4 -> max(|W1|,|system.model*W4|)*||Y/P||_inf < 1
+        W1 = respOrZero(constraint.W1,W);
+        W4 = respOrZero(constraint.W4,W,PLANT*autoScaling);
+
         W14 = max(abs(W1),abs(W4));
         
+        x3_d = [-PLANT.*ZFx,ZFy].*W14./Denominator ;
+        x3 =  Expr.stack(1, Expr.mul(Matrix.dense(real(x3_d)),XY_n),Expr.mul(Matrix.dense(imag(x3_d)),XY_n));
         
-        x3_d = [-PLANT.*ZFx,ZFy].*W14./Denominator;
-        z3 =  Expr.stack(1, Expr.mul(Matrix.dense(real(x3_d)),XY_n),Expr.mul(Matrix.dense(imag(x3_d)),XY_n));
-        
-        M.constraint((Expr.stack(1,z1,z2,z3)), Domain.inRotatedQCone());
+        M.constraint((Expr.hstack(x1,x2,x3)), Domain.inRotatedQCone());
     end
     
     if (~isempty(constraint.W2) || ~isempty(constraint.W3))
-        z2 = Expr.mul(Matrix.dense(0.5*ones(nCon,1)), Expr.add(slack.pick(1),1));
-        % batch W2 and W3
-        % max(|G*W2|,|W3|)||UFF||_inf ≤ 1
+        x2 = Expr.add(0.5*ones(nCon,1), Expr.mul(Matrix.dense(0.5*ones(nCon,1)),slack.pick(1)));
+        % batch W2 and W3 -> max(|system.model*W2|,|W3|)*||X/P||_inf < 1
         W2 = respOrZero(constraint.W2,W,PLANT);
         W3 = respOrZero(constraint.W3,W,autoScaling);
         
-        W2_3 = max(abs(W2),abs(W3));
+        W23 = max(abs(W2),abs(W3));
         
+        x3_d = [ZFx,KLPV_loc.*ZFy].*W23./Denominator ;
+        x3 =  Expr.stack(1, Expr.mul(Matrix.dense(real(x3_d)),XY_n),Expr.mul(Matrix.dense(imag(x3_d)),XY_n));
         
-        x3_d = [ZFx,KLPV_loc.*ZFy].*W2_3./Denominator;
-        z3 =  Expr.stack(1, Expr.mul(Matrix.dense(real(x3_d)),XY_n),Expr.mul(Matrix.dense(imag(x3_d)),XY_n));
-        M.constraint((Expr.stack(1,z1,z2,z3)), Domain.inRotatedQCone());
+        M.constraint((Expr.hstack(x1,x2,x3)), Domain.inRotatedQCone());
     end
+    
 end
 
-M.setSolverParam("intpntScaling", "aggressive");
 M.setSolverParam("intpntSolveForm", parameters.solveForm)
 M.setSolverParam("intpntTolPsafe", 1e-4)
 M.setSolverParam("intpntTolDsafe", 1e-4)
 M.setSolverParam("intpntTolPath",  1e-4)
-M.setSolverParam("intpntCoTolMuRed", parameters.tol/10)
 
 t1 = tic;
 
@@ -236,9 +236,9 @@ diagnostic.solvertime = toc(t1);
 M.acceptedSolutionStatus(AccSolutionStatus.Anything)
 
 
-sol.H2        = sqrt(obj_2.level()/scaObj);
-sol.Hinf      = sqrt(gamma_inf.level()/scaObj);
-sol.obj       = max(obj.level(),0)/scaObj;
+sol.H2        = sqrt(obj_2.level());
+sol.Hinf      = sqrt(gamma_inf.level());
+sol.obj       = max(obj.level(),0);
 
 diagnostic.primal    = char(M.getPrimalSolutionStatus);
 diagnostic.dual      = char(M.getDualSolutionStatus);

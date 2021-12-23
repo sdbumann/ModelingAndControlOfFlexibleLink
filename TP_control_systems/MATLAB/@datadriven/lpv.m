@@ -26,6 +26,9 @@ fprintf(" ----------------------------------------------------------------------
 
 [system,obj,cons,params] = formatInputs(system,obj,cons,params);
 
+if system.controller.den(1,1) ~= 1
+    error('Controller denominator 1st coefficient must be 1')
+end
 
 iter = 0; op = NaN; sol = [];
 solveTime = 0;
@@ -64,7 +67,6 @@ while iter < params.maxIter
     controller = system.controller;
 
 end
-if iter > 0
+
 sol = rmfield(sol,'satisfyConstraints');
-end
 end

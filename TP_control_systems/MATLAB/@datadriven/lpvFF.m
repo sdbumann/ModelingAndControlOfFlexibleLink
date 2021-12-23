@@ -27,6 +27,9 @@ fprintf(" ----------------------------------------------------------------------
 
 [system,obj,cons,params] = formatInputs(system,obj,cons,params);
 
+if system.controller_ff.den(1,1) ~= 1
+    error('Controller denominator 1st coefficient must be 1')
+end
 
 iter = 0; op = NaN; sol = [];
 solveTime = 0;

@@ -9,7 +9,7 @@ function [system,obj,cons,params] = formatInputs(system,obj,cons,params)
 % Set some values (if not already set). Additional input formating should
 % be one here, if any.
 
-system.controller.version = 'datadriven_v1.0'; % to keep track how the controller was designed.
+system.controller.version = 'datadriven_v1.1'; % to keep track how the controller was designed.
 
 
 if isempty(system.controller.Fy)

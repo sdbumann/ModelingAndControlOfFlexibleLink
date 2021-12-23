@@ -7,7 +7,7 @@ close all
 % FormatRST(R,S,T);
 
 %% array of controllers for different models are tuned
-load('SilverBigSystuneTF.mat');
+load('SilverSmallSystuneTF.mat');
 [TF_new, R, S, T] = DataDriven(G, TF, true);
 
 
@@ -26,7 +26,7 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
  
   %  [num,den] = tfdata(C0,'v'); % get numerator/denominator of initial controller
     [z,p,k] = zpkdata(C0,'v');
-    p(6) = 1;
+    p(5) = 1;
     [num,den] = tfdata(zpk(z,p,k,Ts),'v'); % get numerator/denominator of initial controller
      orderK = 9;
  
@@ -62,17 +62,17 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
     SYS.W = w; % specify frequency grid where problem is solved.
  
     z = tf('z', Ts);
-    W1_OBJ = 1e0*(0.5/(z-1) + 0.01/(z-1)^2);
+    W1_OBJ = 0.4/(z-1) + 0.02/(z-1)^2;
     OBJ.two.W1 = W1_OBJ; % Only minimize || W1 S ||_inf.
     % Ideally objective should be around 1
 %     OBJ.two.W2 = tf(db2mag(-3));
 %     OBJ.two.W3 = makeweight(db2mag(-6), 100, db2mag(60));
     
-    W1_CON = 0.005/(z-1) + 0.00001/(z-1)^2;
-    W2_CON = tf(db2mag(-3));
-    W3_CON = makeweight(db2mag(-6), 100, db2mag(60));
+    W1_CON = 0.040/(z-1) + 0.00002/(z-1)^2 + 0.000000007/(z-1)^3;
+    W2_CON = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
+    W3_CON = tf([db2mag(-16)],[1], Ts);
     
-    CON.W1 = [W1_CON]; % constraint || W1 S ||_\infty <1
+    %CON.W1 = [W1_CON]; % constraint || W1 S ||_\infty <1
     CON.W2 = [W2_CON]; % constraint || W2 T ||_\infty <1
     CON.W3 = [W3_CON]; % constraint || W3 U ||_\infty <1
  

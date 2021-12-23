@@ -23,14 +23,16 @@ if isempty(sol)
     % solution struct is not provided: 1st iter
     sol.satisfyConstraints  = 0;
     sol.nIter = 0;
+    sol.H2 = 0;
+    sol.Hinf = 0;
 else
-    if (sol.H2 || sol.Hinf) && (sol.obj < 1e5)
+    if (sol.H2 || sol.Hinf)
         % scale such that objective is approx 2 (better nuerically scaled)
-        scaObj = 1/min(1e4,max(1e-4,0.5*sol.obj));
+        % Not done
     end
 end
 
-autoScaling =  min(1e3,max(1e-1,max(abs(controller.num),[],'all')/parameters.scaling));
+autoScaling =  min(1e3,max(1e-1,max(abs(controller.num),[],'all')));
 if  sol.satisfyConstraints
     % If last solution almost satisfies the constraint, fix slack and
     % optimize over the objective
@@ -48,6 +50,8 @@ end
 
 Xlpv = controller.num/autoScaling;
 Ylpv = controller.den; % rescale numerator
+
+
 
 [szx,ntheta] = size(Xlpv); % number of parameters num
 [szy,~] = size(Ylpv); % number of parameters num
@@ -119,9 +123,9 @@ M.constraint(Expr.sub(obj,OBJ),Domain.greaterThan(0)); % for obj.level();
 
 M.objective('obj', ObjectiveSense.Minimize, OBJ);
 
-for mod =  1: nMod
+for mod_ =  1: nMod
     % Get Local controller
-    Q = controller.theta(system.model(:,:,mod));
+    Q = controller.theta(system.model(:,:,mod_));
     X_c = Xlpv*Q;
     Y_c = Ylpv*Q;
     X_n = Expr.mul(X,Matrix.dense(Q));
@@ -132,7 +136,7 @@ for mod =  1: nMod
     
     %% Important (new) values
     
-    PLANT = resp(system.model(:,:,mod),W)*autoScaling; % Model Frequency response
+    PLANT = resp(system.model(:,:,mod_),W)*autoScaling; % Model Frequency response
     
     Pc =   PLANT.*Xc + Yc; % previous "" Open-loop "" (without numerator Yc)
     Cp =  [PLANT.*ZFx, ZFy]; % P = Cp*[X;Y], Cp complex, [X;Y] real, new "" Open-loop "" frequency response
@@ -142,9 +146,9 @@ for mod =  1: nMod
     % Nyquist stability at |z| = infinity
     if abs(sum(controller.Fy)) < 1e-4
         if X_c(1)
-            M.constraint(Expr.mul(sign(X_c(1)),X_n.index([0,0])),Domain.greaterThan(1e-4));
+            M.constraint(Expr.mul(sign(X_c(1)),X_n.index([0,0])),Domain.greaterThan(0));
         end
-        M.constraint(Expr.mul(Matrix.dense(sign(sum(X_c))),Expr.sum(X_n)),Domain.greaterThan(1e-4));
+        M.constraint(Expr.mul(Matrix.dense(sign(sum(X_c))),Expr.sum(X_n)),Domain.greaterThan(0));
     end
     
     % Stability constraint
@@ -155,20 +159,20 @@ for mod =  1: nMod
         
         dP = getNormalDirection(PcExtended);
         
-        x1_a = 2*real(CpExtended(2:end,:).*conj(dP));
-        x1_b = 2*real(CpExtended(1:end-1,:).*conj(dP));
+        x1_a = real(CpExtended(2:end,:).*conj(dP));
+        x1_b = real(CpExtended(1:end-1,:).*conj(dP));
         
-        M.constraint(Expr.mul(Matrix.dense(x1_a),XY_n),Domain.greaterThan(1e-5));
-        M.constraint(Expr.mul(Matrix.dense(x1_b),XY_n),Domain.greaterThan(1e-5));
+        M.constraint(Expr.mul(Matrix.dense(x1_a),XY_n),Domain.greaterThan(1e-6));
+        M.constraint(Expr.mul(Matrix.dense(x1_b),XY_n),Domain.greaterThan(1e-6));
     end
     
     % Pole controller location
-    if  (parameters.radius) && (numel(Q)>1 || mod==1)
-        % (numel(Q)>1 || mod==1) : not LPV controller, constraint poles
+    if  (parameters.radius) && (numel(Q)>1 || mod_==1)
+        % (numel(Q)>1 || mod==1) : for non LPV controller, constraint poles
         % only once
-        % close the polygonal chain
-        zExtended = [conj(z(1));z;conj(z(end))];
+        %close the polygonal chain
         
+        zExtended = [conj(z(1));z;conj(z(end))];
         ZyExtended = (parameters.radius*zExtended).^((szy-1):-1:0);
         YcsExtended= ZyExtended*(Y_c);
         
@@ -177,8 +181,36 @@ for mod =  1: nMod
         x1_a = 2*real(conj(dY).*ZyExtended(2:end,:));
         x1_b = 2*real(conj(dY).*ZyExtended(1:end-1,:));
         
-        M.constraint(Expr.mul(Matrix.dense(x1_a),Y_n),Domain.greaterThan(1e-5));
-        M.constraint(Expr.mul(Matrix.dense(x1_b),Y_n),Domain.greaterThan(1e-5));
+        M.constraint(Expr.mul(Matrix.dense(x1_a),Y_n),Domain.greaterThan(1e-6));
+        M.constraint(Expr.mul(Matrix.dense(x1_b),Y_n),Domain.greaterThan(1e-6));
+        
+        %{
+          % Stability of the controller pole can also be implemented this
+          % way
+          %
+          % [-rX, AX; XA', -rX] <0 --> |eig(A)| < t
+          % Find X by applying usinh the Schur complement lemma
+          %     -rX +1/r*A*X*A' < 0
+          %     A*X*A'/r^2 - X = -I
+          %     X = dlyap(A/r,I)
+          %
+          % but solving SDP is hard(er)
+        
+        r = (parameters.radius);
+        X_ = dlyap(compan(Y_c)/r,eye(length(Y_c)-1));
+        RY = Y_n.slice([1,0],[szy,1]);
+        companA = Expr.vstack(Expr.transpose(RY), Expr.constTerm(-eye(szy-2,szy-1)));
+         
+     
+        P = Expr.constTerm(r*X_);
+          
+        Ap = Expr.mul(companA, X_);
+          
+          
+         LYAP = Expr.vstack( Expr.hstack(P,Ap), ...
+                             Expr.hstack(Expr.transpose(Ap),P));
+        M.constraint(LYAP,Domain.inPSDCone()); %
+        %}
     end
     
     %% OBJECTIVES
@@ -190,70 +222,77 @@ for mod =  1: nMod
         % Reminder : rotated cones 2*x1*x2 ≥ ||x3||^2, ||.||  Euclidean norm
         
         anyInfObjective = (~isempty(objective.inf.W1) || (~isempty(objective.inf.W4))) || ...
-                          (~isempty(objective.inf.W2) || (~isempty(objective.inf.W3)));  
+            (~isempty(objective.inf.W2) || (~isempty(objective.inf.W3)));
         if anyInfObjective
-
-            x2 = Expr.mul(0.5,gamma_Inf.slice([0,mod-1],[nCon,mod]));
             x3 = [];
             
             if (~isempty(objective.inf.W1) || (~isempty(objective.inf.W4)))
                 W1 = respOrZero(objective.inf.W1,W);
                 W4 = respOrZero(objective.inf.W4,W,PLANT);
-
+                
                 infW14 = sqrt(abs(W1).^2+abs(W4).^2)*sqrt(scaObj);
                 x3_d = infW14.*ZFy;
                 
                 x3 =  Expr.hstack( Expr.mul(real(x3_d),Y_n),Expr.mul(imag(x3_d),Y_n));
+            else
+                infW14 = 0;
             end
             
             if (~isempty(objective.inf.W2) || (~isempty(objective.inf.W3)))
                 W2 = respOrZero(objective.inf.W2,W,PLANT);
                 W3 = respOrZero(objective.inf.W3,W,autoScaling);
-
+                
                 infW23 = sqrt(abs(W2).^2+abs(W3).^2)*sqrt(scaObj);
                 x3_d = infW23.*ZFx;
+                
                 
                 if isempty(x3)
                     x3 =  Expr.hstack(Expr.mul(real(x3_d),X_n),Expr.mul(imag(x3_d),X_n));
                 else
                     x3 =  Expr.hstack(x3, Expr.mul(real(x3_d),X_n),Expr.mul(imag(x3_d),X_n));
                 end
+            else
+                infW23 = 0;
             end
-            
             if ~isempty(x3)
                 % 2*x1*x2 ≥ ||x3||^2, ||.||  Euclidean norm
-                M.constraint((Expr.hstack(x1,x2,x3)), Domain.inRotatedQCone());
+                scaling = 1./(sqrt(abs(infW14.*Yc).^2 + abs(infW23.*Xc).^2)./(abs(Pc)));
+                sz = x3.getShape();
+                
+                x2_scaled = Expr.mulElm(Matrix.dense(scaling*0.5),gamma_Inf.slice([0,mod_-1],[nCon,mod_]));
+                x3_scaled = Expr.mulElm(Matrix.dense(kron(sqrt(scaling),ones(1,sz(2)))),x3);
+                M.constraint(Expr.hstack(x1,x2_scaled,x3_scaled), Domain.inRotatedQCone());
             end % END Hinf
         end
         % H2
         anyTwoObjective = (~isempty(objective.two.W1) || (~isempty(objective.two.W4))) || ...
-                          (~isempty(objective.two.W2) || (~isempty(objective.two.W3)));
+            (~isempty(objective.two.W2) || (~isempty(objective.two.W3)));
         if anyTwoObjective
             % local 2 norm
-            gamma_2  = gamma_2_mmod.slice([0,mod-1],[nCon,mod]);
+            gamma_2  = gamma_2_mmod.slice([0,mod_-1],[nCon,mod_]);
             
             if objective.two.meanNorm
                 meanNorm = Expr.add(meanNorm, Expr.dot(integ/nMod,gamma_2));
             else
                 M.constraint(Expr.sub(obj_2,Expr.dot(integ,gamma_2)),Domain.greaterThan(0));
             end
-            
-            x2 = Expr.mul(0.5,gamma_2) ;
             x3 = [];
             
             if (~isempty(objective.two.W1) || (~isempty(objective.two.W4)))
                 W1 = respOrZero(objective.two.W1,W);
                 W4 = respOrZero(objective.two.W4,W,PLANT);
-
+                
                 twoW14 = sqrt(abs(W1).^2+abs(W4).^2)*sqrt(scaObj);
                 x3_d = twoW14.*ZFy;
                 x3 =  Expr.hstack( Expr.mul(real(x3_d),Y_n),Expr.mul(imag(x3_d),Y_n));
+            else
+                twoW14 = 0;
             end
             
             if (~isempty(objective.two.W2) || (~isempty(objective.two.W3)))
                 W2 = respOrZero(objective.two.W2,W,PLANT);
                 W3 = respOrZero(objective.two.W3,W,autoScaling);
-
+                
                 twoW23 = sqrt(abs(W2).^2+abs(W3).^2)*sqrt(scaObj);
                 x3_d = twoW23.*ZFx;
                 
@@ -262,11 +301,19 @@ for mod =  1: nMod
                 else
                     x3 =  Expr.hstack( x3, Expr.mul(real(x3_d),X_n),Expr.mul(imag(x3_d),X_n));
                 end
+            else
+                twoW23 = 0;
             end
             
             if ~isempty(x3)
-                M.constraint((Expr.hstack(x1,x2,x3)), Domain.inRotatedQCone());
+                scaling = 1./(sqrt(abs(twoW14.*Yc).^2 + abs(twoW23.*Xc).^2)./(abs(Pc)));
+                sz = x3.getShape();
+                
+                x2_scaled = Expr.mulElm(Matrix.dense(scaling*0.5),gamma_2);
+                x3_scaled = Expr.mulElm(Matrix.dense(kron(sqrt(scaling),ones(1,sz(2)))),x3);
+                M.constraint(Expr.hstack(x1,x2_scaled,x3_scaled), Domain.inRotatedQCone());
             end % END H2
+            
         end
     end % END OBJ
     
@@ -277,6 +324,8 @@ for mod =  1: nMod
     % ||W3 U||_inf< 1   -> max(|system.model*W2|,|W3|)*||X/P||_inf < 1
     % ||W3 D||_inf< 1
     
+    lambda =  max(1e-4,min((sqrt(abs(1./Pc))),1e4));
+    x1 = Expr.add( Expr.mul(2*real(Cp.*conj(Pc).*lambda),XY_n), -conj(Pc).*Pc.*lambda );
     if (~isempty(constraint.W1) || ~isempty(constraint.W4))
         x2 = Expr.add(0.5*ones(nCon,1), Expr.mul(Matrix.dense(0.5*ones(nCon,1)),slack.pick(0)));
         % batch W1 and W4 -> max(|W1|,|system.model*W4|)*||Y/P||_inf < 1
@@ -285,7 +334,7 @@ for mod =  1: nMod
         
         cW14 = max(abs(W1),abs(W4));
         
-        x3_d = cW14.*ZFy ;
+        x3_d = cW14.*ZFy.*sqrt(lambda) ;
         x3 =  Expr.hstack( Expr.mul(real(x3_d),Y_n),Expr.mul(imag(x3_d),Y_n));
         
         M.constraint((Expr.hstack(x1,x2,x3)), Domain.inRotatedQCone());
@@ -299,24 +348,30 @@ for mod =  1: nMod
         
         cW23 = max(abs(W2),abs(W3));
         
-        x3_d = cW23.*ZFx ;
+        x3_d = cW23.*ZFx.*sqrt(lambda) ;
         x3 =  Expr.hstack( Expr.mul(real(x3_d),X_n),Expr.mul(imag(x3_d),X_n));
         
         M.constraint((Expr.hstack(x1,x2,x3)), Domain.inRotatedQCone());
     end
+    
+    
 end
 if objective.two.meanNorm
-   M.constraint(Expr.sub(obj_2,meanNorm),Domain.greaterThan(0));
+    M.constraint(Expr.sub(obj_2,meanNorm),Domain.greaterThan(0));
 end
 
+if (sol.H2 || sol.Hinf)
+    %  M.constraint(Expr.sub(sol.obj,obj),Domain.greaterThan(0));
+end
 
 M.setSolverParam("intpntSolveForm", parameters.solveForm);
 M.setSolverParam("intpntTolPsafe", 1e-4);
 M.setSolverParam("intpntTolDsafe", 1e-4);
-M.setSolverParam("intpntTolPath",  1e-4);
+M.setSolverParam("intpntTolPath",  1e-2);
 
 t1 = tic;
 M.solve();
+
 diagnostic.solvertime = toc(t1);
 M.acceptedSolutionStatus(AccSolutionStatus.Anything);
 
@@ -339,6 +394,7 @@ if ~(sol.slack <= 1e-4 && ~sol.satisfyConstraints)
     controller.num = reshape(X.level(),[ntheta, szx])'*autoScaling;
     controller.den = reshape(Y.level(),[ntheta, szy])';
 end
+
 
 sol.nIter = sol.nIter +1;
 M.dispose();
