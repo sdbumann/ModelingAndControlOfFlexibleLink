@@ -3,7 +3,7 @@ close all
 clear
 [u,y,r,t] = ReadBinary('./logs_silver_small.bin');
 Ts = 5e-3;
-%% 1 input data analysis
+% 1 input data analysis
 
 % remove DC offset of u and y
 mean_u = mean(u)
@@ -13,6 +13,97 @@ y=y-y(1); % Remove the mean value of the data
 % % remove linear trend of u and y
 % y=detrend(y, 1);
 % u=detrend(u, 1);
+
+% plot u(k) without DC offset
+img=figure();
+plot(Ts*(1:length(u)), u)
+title("input u with removed offset")
+xlabel('Time (s)')
+ylabel('Amplitude (V)')
+axis tight
+save_img(img, 'img_1_1_u_plot');
+
+%plot biased autocorrelation of u(k)
+[Ruu, huu] = xcorr(u, u, 'biased'); %biased less variance (in HF) than biased, but size of peaks is not right anymore
+[Ryu, hyu] = xcorr(y, u, 'biased');
+img=figure();
+plot(Ts*((-length(u)+1):(length(u)-1)), Ruu)
+title("biased autocorrelation of u(k)")
+xlabel('Time (s)')
+ylabel('Ruu')
+axis tight
+save_img(img, 'img_1_2_Ruu_plot');
+
+% %plot unbiased autocorrelation of u(k) -> better for example(?)
+% [Ruu, huu] = xcorr(u, u, 'unbiased'); %unbiased higher variance (in HF) than biased
+% [Ryu, hyu] = xcorr(y, u, 'biased');
+% figure()
+% plot(Ruu)
+% hold on
+% plot(Ryu)
+% legend('Ruu', 'Ryu')
+% title("unbiased autocorrelation of u(k) (by using matlab function)")
+
+% plot spectral density of u(k)
+Phiuu = abs(fftshift(fft(u))).^2;
+img=figure();
+N=length(u);
+plot(((1:N)-(N/2-1))/Ts/N ,Phiuu)
+% semilogy(Phiuu)
+title("spectral densitiy of u(k)")
+xlabel('Frequency (rad/s)')
+ylabel('Amplitude [V]')
+axis tight
+save_img(img, 'img_1_3_Spectral_density_of_u_plot');
+
+% disp(['Degree of excitation ', num2str(nnz(Phiuu(1:ceil(2*pi))))])
+
+%% 2 Frequency response of system
+
+% 2.1 Fourier analysis -> without averaging because we do not have periodic signals
+%                      -> but with Hann window
+FILT = 1-1/tf('z');
+y = lsim(FILT,y);
+y(1) = 0;
+
+data = iddata(y, r, Ts);
+window_length = 30;
+G_matlab_spa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
+img=figure;
+bode(G_matlab_spa)
+title("Matlab spa function")
+save_img(img, 'img_2_1_matlab_spa_function');
+
+% %% 2.3 Spectral analysis
+% 
+% ws = 2*pi/Ts;
+% N = length(u);
+% 
+% [Ruu, xuu] = xcorr(u, 'biased');
+% [Ryu, xyu] = xcorr(y, u, 'biased');
+% G_spa_val = fft(Ryu(xyu > 0))./fft(Ruu(xuu > 0));
+% G_spa = frd(G_spa_val, (ws/N):(ws/N):((N-1)/N*ws), Ts) ;
+% 
+% % Hann window
+% window = hann(2*N);
+% window = window(N:2*N-2);
+% G_spa_hann_val = fft(window.*Ryu(xyu > 0))./fft(window.*Ruu(xuu > 0));
+% G_spa_hann = frd(G_spa_hann_val, (ws/N):(ws/N):((N-1)/N*ws), Ts) ;
+% 
+% img=figure();
+% subplot(2, 1, 1)
+% bode(G_spa)
+% title("Simple spectral analysis")
+% subplot(2, 1, 2)
+% bode(G_spa_hann)
+% title("Spectral analysis with Hann window")
+% save_img(img, 'img_2_2_spectral_analysis');
+
+% %% 2.4 comparison
+% img=figure();
+% bode(G_matlab_spa, G_spa_hann);
+% legend("Spectral analysis (matlab)", "Spectral analysis");
+% save_img(img, 'img_2_3_tot');
 
 %% 3 order of system
 
@@ -28,9 +119,10 @@ for i = 1:nabmax
     loss(i)=SYS_ARX.EstimationInfo.LossFcn; % compute loss function os SYS_ARX
 end
 
-figure()
+img=figure();
 plot([1:nabmax], loss)
 title('Loss Function for different orders')
+save_img(img, 'img_3_1_Loss_Function_for_different_orders');
 
 order=5; % we can see that it is in region [5:20] -> thus the optimal global order of the system n>=3 
 % SYS_ARX = arx(DATA, [order, order, 1]) ;
@@ -40,7 +132,7 @@ order=5; % we can see that it is in region [5:20] -> thus the optimal global ord
 
 
 %% 3.2 validate global order of sys using pole/zero cancellation
-figure()
+img=figure('units','normalized','outerposition',[0 0 1 1]);
 for i = 1:10
     %SYS_ARMAX=armax(DATA, [na, nb, nc, nk])
     SYS_ARMAX=armax(DATA, [i, i, i, 1]);
@@ -48,16 +140,20 @@ for i = 1:10
     h=iopzplot(SYS_ARMAX); % plot the zeros and poles of SYS_ARMAC
     showConfidence(h,2) % plot their confidence intervals (+/-2sigma).
     title(['order ', num2str(i)])
+    hold on;
 end
+save_img(img, 'img_3_2_zero_pole_cancellation');
+hold off;
 % thus we can say that the order is 7 -> n=7
 n=7
 
 %% 3.3 estimation of delay = nk
 OElength=30;
 OutError=oe(DATA, [OElength, 0, 1]);
-figure()
+img=figure();
 stairs(0:OElength, OutError.b)
 title(sprintf("Impulse response to validate if %d samples are enough", OElength))
+save_img(img, 'img_3_3_impulse_responce');
 [OutError.b(1:5); 2*OutError.db(1:5)] % [[estimate output error for different times] ;[confidence interval for different time (2*standart deviation)]]
                                           % first output error that is not in between than confidence intervall value
                                           % gives us the delay
@@ -78,10 +174,11 @@ for i = 1:n_
    SYS_ARX = arx(DATA, [i,i, nk]);
    loss(i)=SYS_ARX.EstimationInfo.LossFcn;
 end
-figure()
+img=figure();
 plot([1:n_], loss)
 title(['Loss function for varying na = nb'])
 xlabel('na=nb')
+save_img(img, 'img_3_4_Loss_function_for_varying_na_eq_nb');
 
 na=7%as a result of different loss fuctions
 nb=7%as a result of different loss fuctions
@@ -121,8 +218,11 @@ SYS_OE = oe(DATA_TRAIN, [nb nf nk]) ;
 SYS_BJ = bj(DATA_TRAIN, [nb nc nd nf nk]) ;
 SYS_N4SID = n4sid(DATA_TRAIN, n) ;
 
-figure
+img=figure();
 compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
+legend('Location', 'southwest')
+ylim([-3000 1000]);
+save_img(img, 'img_4_1_time_comparison');
 % best model: ARMAX
 
 %% Frequency domain and residus
@@ -131,11 +231,12 @@ compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
 Mspa = spafdr(diff(DATA_TEST), 3, logspace(1,log10(pi/Ts),1000)) ;
 
 % Frequency response comparison
-figure
+img=figure('units','normalized','outerposition',[0 0 1 1]);
 compare(Mspa, SYS_ARMAX, SYS_ARX, SYS_BJ, SYS_IV4, SYS_N4SID, SYS_OE)
+save_img(img, 'img_4_2_freq_comparison');
 
 % validation
-figure
+img=figure('units','normalized','outerposition',[0 0 1 1]);
 subplot(3, 2, 1)
 resid(DATA_TEST, SYS_ARX);
 title("ARX");
@@ -154,6 +255,7 @@ title("BJ");
 subplot(3, 2, 6)
 resid(DATA_TEST, SYS_N4SID);
 title("State space (N4SID)");
+save_img(img, 'img_4_3_auto_and_cross_correlation');
 
 
 % autocorrelation is only for models with a noise estimation (noise should
@@ -183,3 +285,13 @@ Gf = spafdr(diff(DATA),3,w);
 figure()
 compare(G,Gf);
 shg
+
+function save_img(img, imgName)
+    path='C:\Users\samue\Desktop\SemesterProject1\Imgs\SystemIdentification\SmallRuler\';
+%     saveas(img,[path, imgName, 'jpg']) ;
+    saveas(img,[path, imgName, '.jpg']) ;
+    
+%     baseFileName = [imgName, '.jpg']; % e.g. "1.png"
+%     fullFileName = fullfile(path, baseFileName); % No need to worry about slashes now!
+%     imwrite(img, fullFileName);
+end
