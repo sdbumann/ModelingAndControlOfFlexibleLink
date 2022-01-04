@@ -41,3 +41,5 @@ TP_control_systems/LabVIEW/.DS_Store
 TP_control_systems/LabVIEW/src/testLibLoader.vi
 
 *.m~
+
+*.jpg

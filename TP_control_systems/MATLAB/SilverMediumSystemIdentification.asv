@@ -1,7 +1,7 @@
 clc
 close all
 clear
-[u,y,r,t] = ReadBinary('./logs_silver_small.bin');
+[u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
 Ts = 5e-3;
 %% 1 input data analysis
 
@@ -54,10 +54,10 @@ save_img(img, 'img_1_3_Spectral_density_of_u_plot');
 % 2.1 Fourier analysis -> without averaging because we do not have periodic signals
 %                      -> but with Hann window
 FILT = 1-1/tf('z');
-y_ = lsim(FILT,y);
-y_(1) = 0;
+y = lsim(FILT,y);
+y(1) = 0;
 
-data = iddata(y_, r, Ts);
+data = iddata(y, r, Ts);
 window_length = 30;
 G_matlab_spa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
 img=figure;
@@ -71,7 +71,7 @@ DATA = iddata(y, r, Ts); % make to dataformat that arx and armax can use it
 
 %% 3.1 estimation of global order using loss function
 SYS_ARX = [];
-nabmax=20   ;
+nabmax=18   ;
 loss = zeros(nabmax,1);
 for i = 1:nabmax
     SYS_ARX = arx(DATA, [i, i, 1]);
@@ -84,7 +84,7 @@ title('Loss Function for different orders')
 xlabel('n')
 save_img(img, 'img_3_1_Loss_Function_for_different_orders');
 
-order=5; % we can see that it is in region [5:20] -> thus the optimal global order of the system n>=5 
+order=7; % we can see that order is >7 -> thus the optimal global order of the system n>=7 
 
 
 %% 3.2 validate global order of sys using pole/zero cancellation
@@ -92,18 +92,18 @@ img=figure('units','normalized','outerposition',[0 0 1 1]);
 for i = 1:10
     SYS_ARMAX=armax(DATA, [i, i, i, 1]);
     subplot(2,5,i)
-    h=iopzplot(SYS_ARMAX); % plot the zeros and poles of SYS_ARMAX
+    h=iopzplot(SYS_ARMAX); % plot the zeros and poles of SYS_ARMAC
     showConfidence(h,2) % plot their confidence intervals (+/-2sigma).
     title(['order ', num2str(i)])
     hold on;
 end
 save_img(img, 'img_3_2_zero_pole_cancellation');
 hold off;
-% thus we can say that the order is 7 -> n=7
-n=7
+% thus we can say that the order is 8 -> n=8
+n=8
 
 %% 3.3 estimation of delay = nk
-OElength=44;
+OElength=30;
 OutError=oe(DATA, [OElength, 0, 1]);
 img=figure();
 stairs(0:OElength, OutError.b)
@@ -112,12 +112,12 @@ save_img(img, 'img_3_3_impulse_responce');
 [OutError.b(1:5); 2*OutError.db(1:5)] % [[estimate output error for different times] ;[confidence interval for different time (2*standart deviation)]]
                                           % first output error that is not in between than confidence intervall value
                                           % gives us the delay
-%in this case: example:
+%in our case: example:
 %ans =
 
-%          0   -1.0091   -0.9177   -1.0322   -1.2932
-%          0    0.1165    0.1163    0.1157    0.1161
-% -1.0091 is not element of [-0.1165, 0.1165] -> thus it is real value and not noise
+%          0    0.1887    0.1422   -0.1269   -0.0952
+%          0    0.0060    0.0060    0.0060    0.0059
+% 0.1887 is not element of [-0.0060, 0.0060] -> thus it is real value and not noise
 % thus delay is 1 -> nk=1
 nk=1; % nk=d+1
 
@@ -135,8 +135,8 @@ title(['Loss function for varying na = nb'])
 xlabel('na=nb')
 save_img(img, 'img_3_4_Loss_function_for_varying_na_eq_nb');
 
-na=7%as a result of different loss fuctions
-nb=7%as a result of different loss fuctions
+na=8%as a result of different loss fuctions
+nb=8%as a result of different loss fuctions
 
 % %% 3.5 look at "optimal" order according to matlab 
 % NN = struc([1:10], [1:10], [1:10]);
@@ -178,7 +178,7 @@ save_img(img, 'img_4_1_time_comparison');
 %% Frequency domain and residus
 
 % frequency response of sys 
-Mspa = spafdr(diff(DATA_TEST), 3, logspace(1,log10(pi/Ts),1000)) ;
+Mspa = spafdr(diff(DATA_TEST), 4, logspace(1,log10(pi/Ts),1000)) ;
 
 % Frequency response comparison
 img=figure('units','normalized','outerposition',[0 0 1 1]);
@@ -212,14 +212,14 @@ save_img(img, 'img_4_3_auto_and_cross_correlation');
 % thus be white) -> only for ARX, ARMAX and BJ
 % ARMAX good fit in temporel and in frequency domain, also almost validated
 
-%% G is best model
-[u,y,r,t] = ReadBinary('./logs_silver_small.bin');
+%% G is best model ARMAX followed by N4SID -> both closely validated
+[u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
 Ts = 5e-3;
 y=y-y(1);
 
-n  = 7;
-na = 7;%as a result of different loss fuctions
-nb = 7;%as a result of different loss fuctions
+n  = 8;
+na = 8;%as a result of different loss fuctions
+nb = 8;%as a result of different loss fuctions
 nk = 1;
 nc = n;
 nd = n;
@@ -230,13 +230,13 @@ SYS_ARMAX = armax(DATA, [na nb nc nk]);
 G = SYS_ARMAX;
 
 w = logspace(1,log10(pi/Ts),1000);
-Gf = spafdr(diff(DATA),3,w);
+Gf = spafdr(diff(DATA),4,w);
 
 figure()
 compare(G,Gf);
 shg
 
 function save_img(img, imgName)
-    path='C:\Users\samue\Desktop\SemesterProject1\Imgs\SystemIdentification\SmallRuler\';
+    path='C:\Users\samue\Desktop\SemesterProject1\Imgs\SystemIdentification\MediumRuler\';
     saveas(img,[path, imgName, '.jpg']) ;
 end

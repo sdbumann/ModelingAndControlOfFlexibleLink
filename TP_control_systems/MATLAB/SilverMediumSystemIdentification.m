@@ -5,14 +5,65 @@ clear
 Ts = 5e-3;
 %% 1 input data analysis
 
-% remove DC offset of u and y
 mean_u = mean(u)
 y=y-y(1); % Remove the mean value of the data
-% u=detrend(u, 0); % Remove the mean value of the data
 
-% % remove linear trend of u and y
-% y=detrend(y, 1);
-% u=detrend(u, 1);
+% plot u(k) without offset
+img=figure();
+plot(Ts*(1:length(u)), u)
+title("input u with removed offset")
+xlabel('Time (s)')
+ylabel('Amplitude (V)')
+axis tight
+save_img(img, 'img_1_1_u_plot');
+
+%plot biased autocorrelation of u(k)
+[Ruu, huu] = xcorr(u, u, 'biased'); %biased less variance (in HF) than biased, but size of peaks is not right anymore
+[Ryu, hyu] = xcorr(y, u, 'biased');
+img=figure();
+plot(Ts*((-length(u)+1):(length(u)-1)), Ruu)
+title("biased autocorrelation of u(k)")
+xlabel('Time (s)')
+ylabel('Ruu')
+axis tight
+save_img(img, 'img_1_2_Ruu_plot');
+
+% %plot unbiased autocorrelation of u(k) -> better for example(?)
+% [Ruu, huu] = xcorr(u, u, 'unbiased'); %unbiased higher variance (in HF) than biased
+% [Ryu, hyu] = xcorr(y, u, 'biased');
+% figure()
+% plot(Ruu)
+% hold on
+% plot(Ryu)
+% legend('Ruu', 'Ryu')
+% title("unbiased autocorrelation of u(k) (by using matlab function)")
+
+% plot spectral density of u(k)
+Phiuu = abs(fftshift(fft(u))).^2;
+img=figure();
+N=length(u);
+plot(((1:N)-(N/2-1))/Ts/N ,Phiuu)
+title("spectral densitiy of u(k)")
+xlabel('Frequency (rad/s)')
+ylabel('Amplitude [V]')
+axis tight
+save_img(img, 'img_1_3_Spectral_density_of_u_plot');
+
+%% 2 Frequency response of system
+
+% 2.1 Fourier analysis -> without averaging because we do not have periodic signals
+%                      -> but with Hann window
+FILT = 1-1/tf('z');
+y_ = lsim(FILT,y);
+y_(1) = 0;
+
+data = iddata(y_, r, Ts);
+window_length = 30;
+G_matlab_spa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
+img=figure;
+bode(G_matlab_spa)
+title("Matlab spa function")
+save_img(img, 'img_2_1_matlab_spa_function');
 
 %% 3 order of system
 
@@ -23,46 +74,50 @@ SYS_ARX = [];
 nabmax=18   ;
 loss = zeros(nabmax,1);
 for i = 1:nabmax
-    %SYS_ARX=armax(DATA, [na, nb, nk])
     SYS_ARX = arx(DATA, [i, i, 1]);
     loss(i)=SYS_ARX.EstimationInfo.LossFcn; % compute loss function os SYS_ARX
 end
 
-figure()
+img=figure();
 plot([1:nabmax], loss)
 title('Loss Function for different orders')
+xlabel('n')
+save_img(img, 'img_3_1_Loss_Function_for_different_orders');
 
-order=7; % we can see that order is >7 -> thus the optimal global order of the system n>=3 
+order=7; % we can see that order is >7 -> thus the optimal global order of the system n>=7 
 
 
 %% 3.2 validate global order of sys using pole/zero cancellation
-figure()
+img=figure('units','normalized','outerposition',[0 0 1 1]);
 for i = 1:10
-    %SYS_ARMAX=armax(DATA, [na, nb, nc, nk])
     SYS_ARMAX=armax(DATA, [i, i, i, 1]);
     subplot(2,5,i)
     h=iopzplot(SYS_ARMAX); % plot the zeros and poles of SYS_ARMAC
     showConfidence(h,2) % plot their confidence intervals (+/-2sigma).
     title(['order ', num2str(i)])
+    hold on;
 end
+save_img(img, 'img_3_2_zero_pole_cancellation');
+hold off;
 % thus we can say that the order is 8 -> n=8
 n=8
 
 %% 3.3 estimation of delay = nk
 OElength=30;
 OutError=oe(DATA, [OElength, 0, 1]);
-figure()
+img=figure();
 stairs(0:OElength, OutError.b)
 title(sprintf("Impulse response to validate if %d samples are enough", OElength))
+save_img(img, 'img_3_3_impulse_responce');
 [OutError.b(1:5); 2*OutError.db(1:5)] % [[estimate output error for different times] ;[confidence interval for different time (2*standart deviation)]]
                                           % first output error that is not in between than confidence intervall value
                                           % gives us the delay
 %in our case: example:
 %ans =
 
-%          0    0.0872   -0.0830    0.0382    0.0104
-%          0    0.0015    0.0016    0.0016    0.0016
-% 0.0872 is not element of [-0.0015, 0.0015] -> thus it is real value and not noise
+%          0    0.9506    1.0466    0.8916    0.7600
+%          0    0.1197    0.1173    0.1171    0.1158
+% 0.9506 is not element of [-0.1197, 0.1197] -> thus it is real value and not noise
 % thus delay is 1 -> nk=1
 nk=1; % nk=d+1
 
@@ -74,10 +129,11 @@ for i = 1:n_
    SYS_ARX = arx(DATA, [i,i, nk]);
    loss(i)=SYS_ARX.EstimationInfo.LossFcn;
 end
-figure()
+img=figure();
 plot([1:n_], loss)
 title(['Loss function for varying na = nb'])
 xlabel('na=nb')
+save_img(img, 'img_3_4_Loss_function_for_varying_na_eq_nb');
 
 na=8%as a result of different loss fuctions
 nb=8%as a result of different loss fuctions
@@ -88,19 +144,18 @@ nb=8%as a result of different loss fuctions
 % selstruc(V)
 
 
-
-
-
-
 %% 4 parametrix identification and validation
 %% time domain
 nc = n;
 nd = n;
 nf = na;
 
+[u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
+y=y-y(1); % Remove the mean value of the data
+
 % split data in training and testing set
 
-N2 = length(u)/2;
+N2 = ceil(length(u)/2);
 u_test = u(1:N2);
 u_train = u((N2+1):end);
 y_test = y(1:N2);
@@ -117,9 +172,10 @@ SYS_OE = oe(DATA_TRAIN, [nb nf nk]) ;
 SYS_BJ = bj(DATA_TRAIN, [nb nc nd nf nk]) ;
 SYS_N4SID = n4sid(DATA_TRAIN, n) ;
 
-figure
+img=figure();
 compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
-ylim([-2000 5000])
+legend('Location', 'southwest')
+save_img(img, 'img_4_1_time_comparison');
 % best model: ARMAX
 
 %% Frequency domain and residus
@@ -128,11 +184,12 @@ ylim([-2000 5000])
 Mspa = spafdr(diff(DATA_TEST), 4, logspace(1,log10(pi/Ts),1000)) ;
 
 % Frequency response comparison
-figure
+img=figure('units','normalized','outerposition',[0 0 1 1]);
 compare(Mspa, SYS_ARMAX, SYS_ARX, SYS_BJ, SYS_IV4, SYS_N4SID, SYS_OE)
+save_img(img, 'img_4_2_freq_comparison');
 
 % validation
-figure
+img=figure('units','normalized','outerposition',[0 0 1 1]);
 subplot(3, 2, 1)
 resid(DATA_TEST, SYS_ARX);
 title("ARX");
@@ -151,6 +208,7 @@ title("BJ");
 subplot(3, 2, 6)
 resid(DATA_TEST, SYS_N4SID);
 title("State space (N4SID)");
+save_img(img, 'img_4_3_auto_and_cross_correlation');
 
 
 % autocorrelation is only for models with a noise estimation (noise should
@@ -158,7 +216,6 @@ title("State space (N4SID)");
 % ARMAX good fit in temporel and in frequency domain, also almost validated
 
 %% G is best model ARMAX followed by N4SID -> both closely validated
-% QUESTION: is N4SID better because it is better in freq domain? -> but overall worse?
 [u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
 Ts = 5e-3;
 y=y-y(1);
@@ -181,3 +238,8 @@ Gf = spafdr(diff(DATA),4,w);
 figure()
 compare(G,Gf);
 shg
+
+function save_img(img, imgName)
+    path='C:\Users\samue\Desktop\SemesterProject1\Imgs\SystemIdentification\MediumRuler\';
+    saveas(img,[path, imgName, '.jpg']) ;
+end
