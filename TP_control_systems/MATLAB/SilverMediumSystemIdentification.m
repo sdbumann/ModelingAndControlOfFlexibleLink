@@ -150,9 +150,6 @@ nc = n;
 nd = n;
 nf = na;
 
-[u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
-y=y-y(1); % Remove the mean value of the data
-
 % split data in training and testing set
 
 N2 = ceil(length(u)/2);
@@ -174,7 +171,8 @@ SYS_N4SID = n4sid(DATA_TRAIN, n) ;
 
 img=figure();
 compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
-legend('Location', 'southwest')
+legend('Location', 'northwest')
+ylim([-2000 5000])
 save_img(img, 'img_4_1_time_comparison');
 % best model: ARMAX
 
