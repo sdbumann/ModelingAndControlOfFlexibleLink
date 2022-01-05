@@ -31,32 +31,7 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % constraint || W3 U ||_\infty <1
 
 
-
-%% silver small -> it woorks!! (but not for disturbance rejection) -> 5,5 without integrator -> randomstart 9; amplitude: 12; Period 10000 
-% W1 = 0.1/(z-1) + 0.00006/(z-1)^2;
-% W2 = tf([db2mag(-4)],[1], Ts); %=db2mag(-6)
-% W3 = tf([db2mag(-18)],[1], Ts);
-% 
-% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
-% Req.Openings = 'y';
-% 
-% softReq =   [ Req ];
-% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
-
 %% silver small -> it woorks!! -> 5,5 without integrator -> randomstart 19; amplitude: 12; Period 10000 
-% % W1 = 0.040/(z-1) + 0.00002/(z-1)^2 + 0.00000001/(z-1)^3;
-% W1 = makeweight(db2mag(116), 90, db2mag(-38));
-% W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
-% W3 = tf([db2mag(-16)],[1], Ts);
-% 
-% Req = TuningGoal.LoopShape('y',c2d(250/tf('s'), Ts)); % to get a bandwidth of ~150rad/s (bacause -3db at 150rad/s)
-% Req.Openings = 'y';
-% 
-% softReq =   [ Req ];
-% hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
-
-
-%% silver small -> it woorks!! -> 5,5 without integrator -> randomstart 4; amplitude: 12; Period 10000 
 W1 = 0.040/(z-1) + 0.00002/(z-1)^2 + 0.000000007/(z-1)^3;
 W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
 W3 = tf([db2mag(-16)],[1], Ts);
@@ -68,7 +43,7 @@ softReq =   [ Req ];
 hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 %%
-opts = systuneOptions('RandomStart', 4, 'Display', 'sub');
+opts = systuneOptions('RandomStart', 19, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%

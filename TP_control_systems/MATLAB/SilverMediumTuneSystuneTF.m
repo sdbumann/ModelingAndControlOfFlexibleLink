@@ -29,7 +29,7 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 
 
 
-%% silver medium -> works -> with order 7,7 -> amplitude 12; Periode 3000
+%% silver medium -> works -> with order 7,7 -> with randomstart 0 -> amplitude 12; Periode 3000
 W1= 0.003/(z-1) + 0.00001/(z-1)^2;
 W2=tf(db2mag(-3.6));
 W3= tf(db2mag(-11));

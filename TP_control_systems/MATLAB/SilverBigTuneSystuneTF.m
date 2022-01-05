@@ -43,7 +43,7 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 % hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
 
-%% silver big -> it wooooorks better!! -> 7,7 with one value set to 0 -> randomstart 39; amplitude: 12; Period 10000 
+%% silver big -> it wooooorks better!! -> 7,7 with one value set to 0 -> randomstart 19; amplitude: 12; Period 10000 
 W1 = 0.005/(z-1) + 0.00001/(z-1)^2;
 W2 = tf(db2mag(-3));
 W3 = makeweight(db2mag(-6), 100, db2mag(60));
@@ -69,7 +69,7 @@ hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r
 
 
 %%
-opts = systuneOptions('RandomStart', 39, 'Display', 'sub');
+opts = systuneOptions('RandomStart', 24, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
