@@ -62,6 +62,7 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
     SYS.model = G; % Specify model(s). If multiple model, stack them, eg. stack(1,G1,G2,G3,...)
     SYS.W = w; % specify frequency grid where problem is solved.
  
+    % objective = soft constraints
     z = tf('z', Ts);
     W1_OBJ = 0.4/(z-1) + 0.02/(z-1)^2;
     OBJ.two.W1 = W1_OBJ; % Only minimize || W1 S ||_inf.
@@ -69,11 +70,14 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
 %     OBJ.two.W2 = tf(db2mag(-3));
 %     OBJ.two.W3 = makeweight(db2mag(-6), 100, db2mag(60));
     
-    W1_CON = 0.040/(z-1) + 0.00002/(z-1)^2 + 0.000000007/(z-1)^3;
-    W2_CON = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
-    W3_CON = tf([db2mag(-16)],[1], Ts);
+    %condition = hard constraints
+    W1_CON = 0.01/(z-1) + 0.0000005/(z-1)^2 ;%+ 0.000000007/(z-1)^3;
+%     W2_CON = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
+    W2_CON = makeweight(db2mag(-2), 160, db2mag(20));
+%     W3_CON = tf([db2mag(-16)],[1], Ts);
+    W3_CON = makeweight(db2mag(-16), 300, db2mag(30));
     
-    %CON.W1 = [W1_CON]; % constraint || W1 S ||_\infty <1
+    CON.W1 = [W1_CON]; % constraint || W1 S ||_\infty <1
     CON.W2 = [W2_CON]; % constraint || W2 T ||_\infty <1
     CON.W3 = [W3_CON]; % constraint || W3 U ||_\infty <1
  
@@ -94,10 +98,10 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
     FB = datadriven.getController(SYS); 
     
     
-   S = feedback(1,FB*G);
-   S1 = feedback(1,C0*G);
+   S_DataDriven = feedback(1,FB*G);
+   S0 = feedback(1,C0*G);
 
-   step(S1,S)
+   step(S0,S_DataDriven)
 %    xlim([0 2])
 %    ylim([-2 2])
    legend

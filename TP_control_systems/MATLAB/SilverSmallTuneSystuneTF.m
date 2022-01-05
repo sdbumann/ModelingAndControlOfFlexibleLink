@@ -3,7 +3,7 @@ clc
 close all
 clear
 
-load('SilverSmallSystemIdentification');
+load('SilverSmallSysARMAX');
 Ts = G.Ts;
 
 %% tune TF controller

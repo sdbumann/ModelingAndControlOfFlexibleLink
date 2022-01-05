@@ -64,6 +64,7 @@ W = logspace(-1,log10(pi/Ts),2000);
     %SYS.model = G; % Specify model(s). If multiple model, stack them, eg. stack(1,G1,G2,G3,...)
     %SYS.W = w; % specify frequency grid where problem is solved.
 
+    % objective = soft constraints
     z = tf('z', Ts);
     W1_OBJ = 0.003/(z-1) + 0.0002/(z-1)^2; % 0.1/(z-1) + 0.0001/(z-1)^2;
 %     W2_OBJ = makeweight(db2mag(-3.6), 150, db2mag(40));
@@ -72,6 +73,7 @@ W = logspace(-1,log10(pi/Ts),2000);
     OBJ.two.W2 = 20*W2_OBJ; % without this ruler vibrates with ca 200 Hz   
     % Ideally objective should be around 1
     
+    %condition = hard constraints
     W1_CON= 0.003/(z-1) + 0.00001/(z-1)^2;
     W2_CON= 1/makeweight(1.5,50,0);
     W3_CON= tf(db2mag(-11));
