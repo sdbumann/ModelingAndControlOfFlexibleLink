@@ -28,7 +28,7 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
     [z,p,k] = zpkdata(C0,'v');
     p(6) = 1;
     [num,den] = tfdata(zpk(z,p,k,Ts),'v'); % get numerator/denominator of initial controller
-     orderK = 9;
+    orderK = 9;
  
      if length(num) < orderK + 1
 %     % The final and initial controller must have the same order. To achieve

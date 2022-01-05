@@ -84,7 +84,7 @@ title('Loss Function for different orders')
 xlabel('n')
 save_img(img, 'img_3_1_Loss_Function_for_different_orders');
 
-order=16; % we can see that it is in region [3:10] -> thus the optimal global order of the system n>=3 
+order=14; % we can see that it is in region [14:20] -> thus the optimal global order of the system n>=14 
 
 
 %% 3.2 validate global order of sys using pole/zero cancellation
@@ -99,7 +99,7 @@ for i = 1:10
 end
 save_img(img, 'img_3_2_zero_pole_cancellation');
 hold off;
-% thus we can say that the order is 8 -> n=8
+% thus we can say that the order is 14 -> n=14
 n=14
 
 %% 3.3 estimation of delay = nk
@@ -115,9 +115,9 @@ save_img(img, 'img_3_3_impulse_responce');
 %in our case: example:
 %ans =
 
-%          0    0.0872   -0.0830    0.0382    0.0104
-%          0    0.0015    0.0016    0.0016    0.0016
-% 0.0872 is not element of [-0.0015, 0.0015] -> thus it is real value and not noise
+%          0    0.1684    0.2080    0.0874    0.0711
+%          0    0.0288    0.0286    0.0288    0.0290
+% 0.1684 is not element of [-0.0288, 0.0288] -> thus it is real value and not noise
 % thus delay is 1 -> nk=1
 nk=1; % nk=d+1
 
