@@ -8,6 +8,7 @@ close all
 
 %% array of controllers for different models are tuned
 load('SilverSmallSystuneTF.mat');
+load('SilverSmallSysARMAX.mat');
 [TF_new, R, S, T] = DataDriven(G, TF, true);
 
 
@@ -117,6 +118,10 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
 end
 
 function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ)
+    % turn off all warnings for plotting  
+    warning('off','all');
+    warning;
+
     figure
     subplot(3,2,1)
     S = feedback(1,G*K_); % compute sensitivity
@@ -130,13 +135,7 @@ function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ)
 
     subplot(3,2,3)
     T = feedback(K_*G,1);
-%     fb = bandwidth(T);
     bodemag(T, 1/W2_CON);
-%     hold on
-%     xline(fb);
-%     hold on
-%     title(['$T = \frac{Y}{R}$ with bandwidth = ', num2str(fb)], 'interpreter', 'latex')
-%     legend('T', '1/W2', 'bandwidth', 'Location', 'southwest')
     title('$T = \frac{Y}{R}$', 'interpreter', 'latex')
     legend('T', '1/W2_CON', 'Location', 'southwest')
 
@@ -155,6 +154,10 @@ function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ)
     subplot(3,2,6)
     step(U);
     title('Control Signal U (after step)')
+    
+    % turn on all warnings
+    warning('on','all');
+    warning('query','all');
 end
 
 %%

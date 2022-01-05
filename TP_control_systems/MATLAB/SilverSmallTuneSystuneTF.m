@@ -1,13 +1,12 @@
 %% 
 clc
 close all
-% clear
+clear
 
-% load('half_ruler_model_array.mat');
+load('SilverSmallSystemIdentification');
 Ts = G.Ts;
 
 %% tune TF controller
-
 TF = tunableTF('TF',5,5,Ts);
 % TF.Denominator.Value(end) = 0;   % add one integrator: set last denominator entry to zero
 % TF.Denominator.Free(end) = 0;    % fix it to zero
@@ -47,13 +46,9 @@ opts = systuneOptions('RandomStart', 19, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
-
 TF = getBlockValue(CL,'TF');
 
-
-
 %% convert to RST controller
-
 [R_,S_] = tfdata(TF,'v');
 T_ = R_; % in future we can add the gettho low pass here in T
 FormatRST(R_,S_,T_)
@@ -62,12 +57,11 @@ FormatRST(R_,S_,T_)
 plotResult(TF, G, W1, W2, W3)
 
 %%
-% plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
-    
-
-
-%%
 function [] = plotResult(K_, G, W1, W2, W3)
+    % turn off all warnings for plotting  
+    warning('off','all');
+    warning;
+
     figure
     subplot(3,2,1)
     S = feedback(1,G*K_); % compute sensitivity
@@ -108,6 +102,10 @@ function [] = plotResult(K_, G, W1, W2, W3)
     step(U);
     xlim([0 0.8])
     title('Control Signal U (after step)')
+    
+    % turn on all warnings
+    warning('on','all');
+    warning('query','all');
 end
 
 %%

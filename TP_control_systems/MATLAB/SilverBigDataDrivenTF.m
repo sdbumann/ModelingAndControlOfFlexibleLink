@@ -1,5 +1,6 @@
 close all
-%clc
+clc
+clear
 % javaaddpath /Users/baumann/Documents/mosek/9.3/tools/platform/osx64x86/bin/mosek.jar % to add mosek fusion to java path
 
 %% only one controller is tuned
@@ -8,6 +9,7 @@ close all
 
 %% array of controllers for different models are tuned
 load('SilverBigSystuneTF.mat');
+load('SilverBigSysARMAX.mat');
 [TF_new, R, S, T] = DataDriven(G, TF, true);
 
 
@@ -61,6 +63,7 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
     SYS.model = G; % Specify model(s). If multiple model, stack them, eg. stack(1,G1,G2,G3,...)
     SYS.W = w; % specify frequency grid where problem is solved.
  
+    % objective = soft constraints
     z = tf('z', Ts);
     W1_OBJ = 1e0*(0.5/(z-1) + 0.01/(z-1)^2);
     OBJ.two.W1 = W1_OBJ; % Only minimize || W1 S ||_inf.
@@ -68,6 +71,7 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
 %     OBJ.two.W2 = tf(db2mag(-3));
 %     OBJ.two.W3 = makeweight(db2mag(-6), 100, db2mag(60));
     
+    %condition = hard constraints
     W1_CON = 0.005/(z-1) + 0.00001/(z-1)^2;
     W2_CON = tf(db2mag(-3));
     W3_CON = makeweight(db2mag(-6), 100, db2mag(60));
@@ -117,6 +121,10 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
 end
 
 function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ)
+    % turn off all warnings for plotting  
+    warning('off','all');
+    warning;
+
     figure
     subplot(3,2,1)
     S = feedback(1,G*K_); % compute sensitivity
@@ -130,13 +138,7 @@ function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ)
 
     subplot(3,2,3)
     T = feedback(K_*G,1);
-%     fb = bandwidth(T);
     bodemag(T, 1/W2_CON);
-%     hold on
-%     xline(fb);
-%     hold on
-%     title(['$T = \frac{Y}{R}$ with bandwidth = ', num2str(fb)], 'interpreter', 'latex')
-%     legend('T', '1/W2', 'bandwidth', 'Location', 'southwest')
     title('$T = \frac{Y}{R}$', 'interpreter', 'latex')
     legend('T', '1/W2_CON', 'Location', 'southwest')
 
@@ -155,6 +157,10 @@ function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ)
     subplot(3,2,6)
     step(U);
     title('Control Signal U (after step)')
+    
+    % turn on all warnings
+    warning('on','all');
+    warning('query','all');
 end
 
 %%

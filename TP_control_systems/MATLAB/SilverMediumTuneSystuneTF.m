@@ -1,8 +1,9 @@
 %% 
 clc
 close all
-% clear
+clear
 
+load('SilverMediumSystemIdentification');
 Ts = G.Ts;
 
 %% tune TF controller
@@ -60,12 +61,11 @@ FormatRST(R_,S_,T_)
 plotResult(TF, G, W1, W2, W3)
 
 %%
-% plotResult(tf([1],[1],Ts), sys(:,:,1), tf([1],[1],Ts), tf([1],[1],Ts), tf([1],[1],Ts));
-    
-
-
-%%
 function [] = plotResult(K_, G, W1, W2, W3)
+    % turn off all warnings for plotting  
+    warning('off','all');
+    warning;
+
     figure
     subplot(3,2,1)
     S = feedback(1,G*K_); % compute sensitivity
@@ -106,6 +106,10 @@ function [] = plotResult(K_, G, W1, W2, W3)
     step(U);
     xlim([0 0.8])
     title('Control Signal U (after step)')
+    
+    % turn on all warnings
+    warning('on','all');
+    warning('query','all');
 end
 
 %%

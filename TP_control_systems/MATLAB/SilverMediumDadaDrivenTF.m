@@ -1,4 +1,6 @@
 close all
+clc
+clear
 % javaaddpath /Users/baumann/Documents/mosek/9.3/tools/platform/osx64x86/bin/mosek.jar % to add mosek fusion to java path
 
 %% only one controller is tuned
@@ -7,6 +9,7 @@ close all
 
 %% array of controllers for different models are tuned
 load('SilverMediumSystuneTF.mat');
+load('SilverMediumSysARMAX.mat');
 [TF_new, R, S, T] = DataDriven(G, TF, true);
 
 
@@ -117,6 +120,10 @@ W = logspace(-1,log10(pi/Ts),2000);
 end
 
 function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ, W2_OBJ)
+    % turn off all warnings for plotting  
+    warning('off','all');
+    warning;
+
     figure
     subplot(3,2,1)
     S = feedback(1,G*K_); % compute sensitivity
@@ -130,13 +137,7 @@ function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ, W2_OBJ)
 
     subplot(3,2,3)
     T = feedback(K_*G,1);
-%     fb = bandwidth(T);
     bodemag(T, 1/W2_CON, 1/W2_OBJ);
-%     hold on
-%     xline(fb);
-%     hold on
-%     title(['$T = \frac{Y}{R}$ with bandwidth = ', num2str(fb)], 'interpreter', 'latex')
-%     legend('T', '1/W2', 'bandwidth', 'Location', 'southwest')
     title('$T = \frac{Y}{R}$', 'interpreter', 'latex')
     legend('T', '1/W2_CON', '1/W2_OBJ', 'Location', 'southwest')
 
@@ -155,6 +156,10 @@ function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ, W2_OBJ)
     subplot(3,2,6)
     step(U);
     title('Control Signal U (after step)')
+    
+    % turn on all warnings
+    warning('on','all');
+    warning('query','all');
 end
 
 %%

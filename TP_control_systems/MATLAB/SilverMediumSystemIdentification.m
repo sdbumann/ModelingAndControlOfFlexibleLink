@@ -213,30 +213,7 @@ save_img(img, 'img_4_3_auto_and_cross_correlation');
 % thus be white) -> only for ARX, ARMAX and BJ
 % ARMAX good fit in temporel and in frequency domain, also almost validated
 
-%% G is best model ARMAX followed by N4SID -> both closely validated
-[u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
-Ts = 5e-3;
-y=y-y(1);
-
-n  = 8;
-na = 8;%as a result of different loss fuctions
-nb = 8;%as a result of different loss fuctions
-nk = 1;
-nc = n;
-nd = n;
-nf = na;
-
-DATA = iddata(y, u, Ts);
-SYS_ARMAX = armax(DATA, [na nb nc nk]);
-G = SYS_ARMAX;
-
-w = logspace(1,log10(pi/Ts),1000);
-Gf = spafdr(diff(DATA),4,w);
-
-figure()
-compare(G,Gf);
-shg
-
+%%
 function save_img(img, imgName)
     path='C:\Users\samue\Desktop\SemesterProject1\Imgs\SystemIdentification\MediumRuler\';
     saveas(img,[path, imgName, '.jpg']) ;
