@@ -14,7 +14,7 @@ plot(Ts*(1:length(u)), u)
 title("input u with removed offset")
 xlabel('Time (s)')
 ylabel('Amplitude (V)')
-axis tight
+xlim([0 1])
 save_img(img, 'img_1_1_u_plot');
 
 %plot biased autocorrelation of u(k)
@@ -45,7 +45,7 @@ N=length(u);
 plot(((1:N)-(N/2-1))/Ts/N ,Phiuu)
 title("spectral densitiy of u(k)")
 xlabel('Frequency (rad/s)')
-ylabel('Amplitude [V]')
+ylabel('Phiuu')
 axis tight
 save_img(img, 'img_1_3_Spectral_density_of_u_plot');
 
@@ -108,6 +108,7 @@ OutError=oe(DATA, [OElength, 0, 1]);
 img=figure();
 stairs(0:OElength, OutError.b)
 title(sprintf("Impulse response to validate if %d samples are enough", OElength))
+xlabel('number of samples')
 save_img(img, 'img_3_3_impulse_responce');
 [OutError.b(1:5); 2*OutError.db(1:5)] % [[estimate output error for different times] ;[confidence interval for different time (2*standart deviation)]]
                                           % first output error that is not in between than confidence intervall value
@@ -152,7 +153,7 @@ nf = na;
 
 % split data in training and testing set
 
-N2 = length(u)/2;
+N2 = ceil(length(u)/2);
 u_test = u(1:N2);
 u_train = u((N2+1):end);
 y_test = y(1:N2);
@@ -211,6 +212,11 @@ save_img(img, 'img_4_3_auto_and_cross_correlation');
 % autocorrelation is only for models with a noise estimation (noise should
 % thus be white) -> only for ARX, ARMAX and BJ
 % ARMAX good fit in temporel and in frequency domain, also almost validated
+
+%%
+img=figure();
+compare(Mspa, SYS_ARMAX)
+save_img(img, 'img_5_comparison_ARMAX_DataTest');
 
 %%
 function save_img(img, imgName)
