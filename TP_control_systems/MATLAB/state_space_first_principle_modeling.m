@@ -1,4 +1,4 @@
-classdef state_space
+classdef state_space_first_principle_modeling
     methods(Static)
         
         function syscnts = continuous_fpm(r,l,b,h)

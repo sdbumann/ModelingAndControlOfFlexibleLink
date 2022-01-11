@@ -3,6 +3,7 @@ close all
 clear
 [u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
 Ts = 5e-3;
+save=true;
 %% 1 input data analysis
 
 mean_u = mean(u)
@@ -15,7 +16,9 @@ title("input u with removed offset")
 xlabel('Time (s)')
 ylabel('Amplitude (V)')
 xlim([0 1])
-save_img(img, 'img_1_1_u_plot');
+if save==true
+    save_img(img, 'img_1_1_u_plot');
+end
 
 %plot biased autocorrelation of u(k)
 [Ruu, huu] = xcorr(u, u, 'biased'); %biased less variance (in HF) than biased, but size of peaks is not right anymore
@@ -26,7 +29,9 @@ title("biased autocorrelation of u(k)")
 xlabel('Time (s)')
 ylabel('Ruu')
 axis tight
-save_img(img, 'img_1_2_Ruu_plot');
+if save==true
+    save_img(img, 'img_1_2_Ruu_plot');
+end
 
 % %plot unbiased autocorrelation of u(k) -> better for example(?)
 % [Ruu, huu] = xcorr(u, u, 'unbiased'); %unbiased higher variance (in HF) than biased
@@ -47,12 +52,12 @@ title("spectral densitiy of u(k)")
 xlabel('Frequency (rad/s)')
 ylabel('Phiuu')
 axis tight
-save_img(img, 'img_1_3_Spectral_density_of_u_plot');
+if save==true
+    save_img(img, 'img_1_3_Spectral_density_of_u_plot');
+end
 
 %% 2 Frequency response of system
 
-% 2.1 Fourier analysis -> without averaging because we do not have periodic signals
-%                      -> but with Hann window
 FILT = 1-1/tf('z');
 y_ = lsim(FILT,y);
 y_(1) = 0;
@@ -63,7 +68,9 @@ G_matlab_spa = spafdr(diff(data), [], logspace(1,log10(pi/Ts),400)) ;
 img=figure;
 bode(G_matlab_spa)
 title("Matlab spa function")
-save_img(img, 'img_2_1_matlab_spa_function');
+if save==true
+    save_img(img, 'img_2_1_matlab_spa_function');
+end
 
 %% 3 order of system
 
@@ -82,7 +89,9 @@ img=figure();
 plot([1:nabmax], loss)
 title('Loss Function for different orders')
 xlabel('n')
-save_img(img, 'img_3_1_Loss_Function_for_different_orders');
+if save==true
+    save_img(img, 'img_3_1_Loss_Function_for_different_orders');
+end
 
 order=7; % we can see that order is >7 -> thus the optimal global order of the system n>=7 
 
@@ -97,7 +106,9 @@ for i = 1:10
     title(['order ', num2str(i)])
     hold on;
 end
-save_img(img, 'img_3_2_zero_pole_cancellation');
+if save==true
+    save_img(img, 'img_3_2_zero_pole_cancellation');
+end
 hold off;
 % thus we can say that the order is 8 -> n=8
 n=8
@@ -109,7 +120,9 @@ img=figure();
 stairs(0:OElength, OutError.b)
 title(sprintf("Impulse response to validate if %d samples are enough", OElength))
 xlabel('number of samples')
-save_img(img, 'img_3_3_impulse_responce');
+if save==true
+    save_img(img, 'img_3_3_impulse_responce');
+end
 [OutError.b(1:5); 2*OutError.db(1:5)] % [[estimate output error for different times] ;[confidence interval for different time (2*standart deviation)]]
                                           % first output error that is not in between than confidence intervall value
                                           % gives us the delay
@@ -134,7 +147,9 @@ img=figure();
 plot([1:n_], loss)
 title(['Loss function for varying na = nb'])
 xlabel('na=nb')
-save_img(img, 'img_3_4_Loss_function_for_varying_na_eq_nb');
+if save==true
+    save_img(img, 'img_3_4_Loss_function_for_varying_na_eq_nb');
+end
 
 na=8%as a result of different loss fuctions
 nb=8%as a result of different loss fuctions
@@ -174,7 +189,9 @@ img=figure();
 compare(DATA_TEST, SYS_ARX, SYS_IV4, SYS_ARMAX, SYS_OE, SYS_BJ, SYS_N4SID);
 legend('Location', 'northwest')
 ylim([-2000 5000])
-save_img(img, 'img_4_1_time_comparison');
+if save==true
+    save_img(img, 'img_4_1_time_comparison');
+end
 % best model: ARMAX
 
 %% Frequency domain and residus
@@ -185,7 +202,9 @@ Mspa = spafdr(diff(DATA_TEST), 4, logspace(1,log10(pi/Ts),1000)) ;
 % Frequency response comparison
 img=figure('units','normalized','outerposition',[0 0 1 1]);
 compare(Mspa, SYS_ARMAX, SYS_ARX, SYS_BJ, SYS_IV4, SYS_N4SID, SYS_OE)
-save_img(img, 'img_4_2_freq_comparison');
+if save==true
+    save_img(img, 'img_4_2_freq_comparison');
+end
 
 % validation
 img=figure('units','normalized','outerposition',[0 0 1 1]);
@@ -207,7 +226,9 @@ title("BJ");
 subplot(3, 2, 6)
 resid(DATA_TEST, SYS_N4SID);
 title("State space (N4SID)");
-save_img(img, 'img_4_3_auto_and_cross_correlation');
+if save==true
+    save_img(img, 'img_4_3_auto_and_cross_correlation');
+end
 
 
 % autocorrelation is only for models with a noise estimation (noise should
@@ -217,7 +238,9 @@ save_img(img, 'img_4_3_auto_and_cross_correlation');
 %%
 img=figure();
 compare(Mspa, SYS_ARMAX)
-save_img(img, 'img_5_comparison_ARMAX_DataTest');
+if save==true
+    save_img(img, 'img_5_comparison_ARMAX_DataTest');
+end
 
 %%
 function save_img(img, imgName)
