@@ -1,7 +1,7 @@
 close all
 clc
 clear
-% javaaddpath /Users/baumann/Documents/mosek/9.3/tools/platform/osx64x86/bin/mosek.jar % to add mosek fusion to java path
+% javaaddpath /Users/baumann/Documents/mosek/9.3/tools/platform/osx64x86/bin/mosek.jar to add mosek fusion to java path (run this line only the first time)
 
 %% only one controller is tuned
 % [~, R, S, T] = DataDriven(G, true);
