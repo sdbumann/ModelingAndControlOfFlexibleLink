@@ -7,10 +7,12 @@ Ts = 0.1; % s
 save=true;
 
 %% small ruler
-l = 150;
-b = 20;
-h = 0.1;
-syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h);
+l = 160;%mm
+b = 18;%mm
+h = 0.6;%mm
+K = 291.5; % Nmm/rad -> spring constant
+m = 8.4e-3; % kg
+syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h,K,m);
 img = figure();
 bode(syscnts)
 title('Frequency repsonce for middle ruler')
@@ -19,10 +21,12 @@ if save==true
 end
 
 %% medium ruler
-l = 300;
-b = 12;
-h = 0.1;
-syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h);
+l = 300;%mm
+b = 13.5;%mm
+h = 0.4;%mm
+K = 210.9; % Nmm/rad -> spring constant
+m = 10.15e-3; % kg
+syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h,K,m);
 img = figure();
 bode(syscnts)
 title('Frequency repsonce for middle ruler')
@@ -31,10 +35,12 @@ if save==true
 end
 
 %% big ruler
-l = 500;
-b = 20;
-h = 0.1;
-syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h);
+l = 500;%mm
+b = 18;%mm
+h = 0.6;%mm
+K = 122.7; % Nmm/rad -> spring constant
+m = 20.6e-3; % kg
+syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h,K,m);
 img = figure();
 bode(syscnts)
 title('Frequency repsonce for middle ruler')

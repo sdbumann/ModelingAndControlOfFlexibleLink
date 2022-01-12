@@ -1,7 +1,7 @@
 classdef state_space_first_principle_modeling
     methods(Static)
         
-        function syscnts = continuous_fpm(r,l,b,h)
+        function syscnts = continuous_fpm(r,l,b,h,K,m)
             % returns the continuous state space representation
             % by using first prinsiple modeling (fpm)
             % Dcnts = 0
@@ -21,8 +21,8 @@ classdef state_space_first_principle_modeling
 %             l = 140; % mm -> length
 %             b = 20;  % mm -> height 
 %             h = 0.1; % mm -> width
-            K = 1000; % Nmm/rad -> spring constant
-            m = 347e-3; % kg -> point mass
+%             K = 1000; % Nmm/rad -> spring constant
+%             m = 347e-3; % kg -> point mass
 
             %% Ruler holder
             mcylinder = 7e-3; % kg -> mass cylinder
