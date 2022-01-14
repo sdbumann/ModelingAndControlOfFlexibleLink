@@ -1,14 +1,14 @@
 NAME								|LINK TO VIDEO
 ____________________________________|________________________________________________
-HinfSmall.mp4						|
-HinfSmallDisturbance.mp4			|
-HinfMedium.mp4						|
-HinfMediumDisturbance.mp4			|
-HinfBig.mp4							|
-HinfBigDisturbance.mp4				|
-DataDrivenSmall.mp4					|
-DataDrivenSmallDisturbance.mp4		|
-DataDrivenMedium.mp4				|
-DataDrivenMediumDisturbance.mp4		|
-DataDrivenBig.mp4					|
-DataDrivenBigDisturbance.mp4		|
+HinfSmall.mp4						|https://photos.app.goo.gl/K7wDijitLpVV2PK29
+HinfSmallDisturbance.mp4			|https://photos.app.goo.gl/8taTR9SUgohsAeJk6
+HinfMedium.mp4						|https://photos.app.goo.gl/s7ekgGxHXuY825pi7
+HinfMediumDisturbance.mp4			|https://photos.app.goo.gl/rYWt8CZJo77CSaaB9
+HinfBig.mp4							|https://photos.app.goo.gl/mUzgkGQyUpnnN7Aj8
+HinfBigDisturbance.mp4				|https://photos.app.goo.gl/PpZbGtMWmbKiyCoR8
+DataDrivenSmall.mp4					|https://photos.app.goo.gl/RxDiqdgJaSCWXpB79
+DataDrivenSmallDisturbance.mp4		|https://photos.app.goo.gl/Lsz33N7DTRsKetoZ9
+DataDrivenMedium.mp4				|https://photos.app.goo.gl/8mTC7itGEKZDcAFk7
+DataDrivenMediumDisturbance.mp4		|https://photos.app.goo.gl/83bZH7TvSLYDPyWv8
+DataDrivenBig.mp4					|https://photos.app.goo.gl/NudUCXeejFgE8qKz8
+DataDrivenBigDisturbance.mp4		|https://photos.app.goo.gl/kjRar6ME1s1MTfZM7
