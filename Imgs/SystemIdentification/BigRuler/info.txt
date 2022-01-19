@@ -1,0 +1,1 @@
+This file structure is used if one uses the automatic save function of the different Matlab scripts. 

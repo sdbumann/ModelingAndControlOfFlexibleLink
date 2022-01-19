@@ -4,7 +4,7 @@ clear
 
 %% sampling time Ts
 Ts = 5e-3; % s
-save=true;
+save=false;
 
 %% small ruler
 [u,y,r,t] = ReadBinary('./logs_silver_small.bin');
@@ -27,7 +27,7 @@ if save==true
 end
 
 %% medium ruler
-[u,y,r,t] = ReadBinary('./logs_silver_small.bin');
+[u,y,r,t] = ReadBinary('./logs_silver_medium.bin');
 y=y-y(1);
 DATA = iddata(y, u, Ts);
 Mspa = spafdr(diff(DATA), 3, logspace(-1,log10(pi/Ts),1000));
@@ -47,7 +47,7 @@ if save==true
 end
 
 %% big ruler
-[u,y,r,t] = ReadBinary('./logs_silver_small.bin');
+[u,y,r,t] = ReadBinary('./logs_silver_big.bin');
 y=y-y(1);
 DATA = iddata(y, u, Ts);
 Mspa = spafdr(diff(DATA), 3, logspace(-1,log10(pi/Ts),1000));
@@ -68,6 +68,6 @@ end
 
 %%
 function save_img(img, imgName)
-    path='C:\Users\samue\Desktop\SemesterProject1\Imgs\FirstPrincipleModeling\';
+    path='..\Imgs\FirstPrincipleModeling\';
     saveas(img,[path, imgName, '.jpg']) ;
 end

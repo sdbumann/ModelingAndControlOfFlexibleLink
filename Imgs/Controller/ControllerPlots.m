@@ -3,6 +3,7 @@ clc
 close all
 Ts = 5e-3;
 addpath 'C:\Users\samue\Desktop\SemesterProject1\MATLAB'
+save=false;
 
 %% Big ruler tracking of smoothed rectangular signal
 img=figure('units','normalized','outerposition',[0 0 1 1]);
@@ -26,7 +27,9 @@ xlim([16.3 39])
 ylim([-20 21])
 title('Big ruler tracking of smoothed rectangular signal');
 hold off
-save_img(img, 'Big')
+if save==true
+    save_img(img, 'Big')
+end
 
 %% Big ruler disturbance rejection
 img=figure('units','normalized','outerposition',[0 0 1 1]);
@@ -50,7 +53,9 @@ xlim([8 28])
 ylim([-40 32])
 title('Big ruler disturbance rejection');
 hold off
-save_img(img, 'BigWDisturbance')
+if save==true
+    save_img(img, 'BigWDisturbance')
+end
 
 %% Medium ruler tracking of smoothed rectangular signal
 img=figure('units','normalized','outerposition',[0 0 1 1]);
@@ -74,7 +79,9 @@ xlim([16.3 28])
 ylim([-20 21])
 title('Medium ruler tracking of smoothed rectangular signal');
 hold off
-save_img(img, 'Medium')
+if save==true
+    save_img(img, 'Medium')
+end
 
 %% Medium ruler disturbance rejection
 img=figure('units','normalized','outerposition',[0 0 1 1]);
@@ -98,7 +105,9 @@ xlim([4 10])
 ylim([-42 34])
 title('Medium ruler disturbance rejection');
 hold off
-save_img(img, 'MediumWDisturbance')
+if save==true
+    save_img(img, 'MediumWDisturbance')
+end
 
 %% Small ruler tracking of smoothed rectangular signal
 img=figure('units','normalized','outerposition',[0 0 1 1]);
@@ -122,7 +131,9 @@ xlim([14.55 23.4])
 ylim([-16 16])
 title('Small ruler tracking of smoothed rectangular signal');
 hold off
-save_img(img, 'Small')
+if save==true
+    save_img(img, 'Small')
+end
 
 %% Small ruler disturbance rejection
 img=figure('units','normalized','outerposition',[0 0 1 1]);
@@ -146,11 +157,12 @@ xlim([3.8 7.7])
 ylim([-64 16])
 title('Small ruler disturbance rejection');
 hold off
-save_img(img, 'SmallWDisturbance')
-
+if save==true
+    save_img(img, 'SmallWDisturbance')
+end
 
 %%
 function save_img(img, imgName)
-    path='C:\Users\samue\Desktop\SemesterProject1\Imgs\Controller\';
+    path='..\Imgs\Controller\';
     saveas(img,[path, imgName, '.jpg']) ;
 end

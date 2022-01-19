@@ -3,7 +3,7 @@ close all
 clear
 [u,y,r,t] = ReadBinary('./logs_silver_small.bin');
 Ts = 5e-3;
-save=true;
+save=false;
 %% 1 input data analysis
 
 mean_u = mean(u)
@@ -243,6 +243,6 @@ end
 
 %%
 function save_img(img, imgName)
-    path='C:\Users\samue\Desktop\SemesterProject1\Imgs\SystemIdentification\SmallRuler\';
+    path='..\Imgs\SystemIdentification\SmallRuler\';
     saveas(img,[path, imgName, '.jpg']) ;
 end
