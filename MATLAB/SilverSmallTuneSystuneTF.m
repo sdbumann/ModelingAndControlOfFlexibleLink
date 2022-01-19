@@ -1,15 +1,13 @@
 %% 
 clc
 close all
-clear
+clearvars -except add_java_path
 
 load('SilverSmallSysARMAX');
 Ts = G.Ts;
 
 %% tune TF controller
 TF = tunableTF('TF',5,5,Ts);
-% TF.Denominator.Value(end) = 0;   % add one integrator: set last denominator entry to zero
-% TF.Denominator.Free(end) = 0;    % fix it to zero
 
 z = tf('z',Ts);
 TF.u = 'e';   TF.y = 'u';
@@ -23,14 +21,11 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 %   {'u','e','y'}:  outputs
 %   {'y'}:          analysis points
 
-
-
 % constraint || W1 S ||_\infty <1
 % constraint || W2 T ||_\infty <1
 % constraint || W3 U ||_\infty <1
 
-
-%% silver small -> it woorks!! -> 5,5 without integrator -> randomstart 19; amplitude: 12; Period 10000 
+%% -> randomstart 19;
 W1 = 0.040/(z-1) + 0.00002/(z-1)^2 + 0.000000007/(z-1)^3;
 W2 = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
 W3 = tf([db2mag(-16)],[1], Ts);

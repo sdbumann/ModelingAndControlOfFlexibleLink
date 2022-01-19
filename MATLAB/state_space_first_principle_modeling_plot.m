@@ -1,6 +1,6 @@
 clc
 close all
-clear
+clearvars -except add_java_path
 
 %% sampling time Ts
 Ts = 5e-3; % s

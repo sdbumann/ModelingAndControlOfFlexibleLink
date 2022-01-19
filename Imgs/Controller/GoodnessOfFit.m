@@ -1,7 +1,7 @@
 %% File to load different controllers for different rulers
 
 %% Small Ruler Hinf controller
-clear; close all;
+clearvars -except add_java_path; close all;
 load('SilverSmallSystuneTF.mat');
 load('SilverSmallSysARMAX');
 load('ControllerHinfSmallData');

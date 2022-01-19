@@ -1,4 +1,4 @@
-clear
+clearvars -except add_java_path
 clc
 close all
 Ts = 5e-3;
@@ -163,6 +163,6 @@ end
 
 %%
 function save_img(img, imgName)
-    path='..\Imgs\Controller\';
+    path='..\..\Imgs\Controller\';
     saveas(img,[path, imgName, '.jpg']) ;
 end

@@ -1,6 +1,6 @@
 clc
 close all
-clear
+clearvars -except add_java_path
 [u,y,r,t] = ReadBinary('./logs_silver_small.bin');
 Ts = 5e-3;
 save=false;

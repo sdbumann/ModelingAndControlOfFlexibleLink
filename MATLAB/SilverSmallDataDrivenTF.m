@@ -1,18 +1,18 @@
 close all
-%clc
-% javaaddpath /Users/baumann/Documents/mosek/9.3/tools/platform/osx64x86/bin/mosek.jar % to add mosek fusion to java path
+clc
+clearvars -except add_java_path
+% Mosek fusion is needed for this script. Thus add it to java path.
+exist('add_java_path', 'var')
+if exist('add_java_path','var')==0
+    javaaddpath /Users/baumann/Documents/mosek/9.3/tools/platform/osx64x86/bin/mosek.jar;% change path to mosek fusion
+    add_java_path=1;
+    disp('added java path')
+end
 
-%% only one controller is tuned
-% [~, R, S, T] = DataDriven(G, true);
-% FormatRST(R,S,T);
-
-%% array of controllers for different models are tuned
+%% data driven controller is tuned
 load('SilverSmallSystuneTF.mat');
 load('SilverSmallSysARMAX.mat');
 [TF_new, R, S, T] = DataDriven(G, TF, true);
-
-
-
 
 %%
 function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
@@ -20,25 +20,20 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
     Ts = G.Ts;
     
     %% datadriven controller
-    % addpath('@datadriven')
+     % Get the default strutcures used for datadriven 
+     [SYS, OBJ, CON, PAR] = datadriven.emptyStruct; %needed emptyStruct function https://ch.mathworks.com/matlabcentral/fileexchange/45135-emptystruct
  
-    % Get the default strutcures used for datadriven 
-    [SYS, OBJ, CON, PAR] = datadriven.emptyStruct; %needed emptyStruct function https://ch.mathworks.com/matlabcentral/fileexchange/45135-emptystruct
- 
-  %  [num,den] = tfdata(C0,'v'); % get numerator/denominator of initial controller
-    [z,p,k] = zpkdata(C0,'v');
-    p(5) = 1;
-    [num,den] = tfdata(zpk(z,p,k,Ts),'v'); % get numerator/denominator of initial controller
+     [z,p,k] = zpkdata(C0,'v');
+     p(5) = 1;
+     [num,den] = tfdata(zpk(z,p,k,Ts),'v'); % get numerator/denominator of initial controller
      orderK = 9;
  
      if length(num) < orderK + 1
-%     % The final and initial controller must have the same order. To achieve
-%     % this, the initial controller is simply zero-padded.
-     den(orderK+1) = 0; % 
-     num(orderK+1) = 0; % 
+         % The final and initial controller must have the same order. To achieve
+         % this, the initial controller is simply zero-padded.
+         den(orderK+1) = 0; % 
+         num(orderK+1) = 0; % 
      end
- 
- 
  
     % Poles on unit cicle of the inital and final controller MUST be identical.
     % To do so, move all the controller's poles to the fixed part in the
@@ -46,15 +41,6 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
  
     Fy = [1 -1]; % fixed parts in denominator.
     den = deconv(den,Fy); % remove the fixed parts from the denominator, as they are now in the fixed part Fy.
-%  
-%     Q = THETA(G);
-%     den = den(:)';
-%     num = num(:)';
- 
-%     if length(Q) > 1
-%         den(numel(Q),1) = 0;
-%         num(numel(Q),1) = 0;
-%     end
  
     SYS.controller = struct('num',num','den',den','Ts',Ts,'Fx',1,'Fy',Fy,'theta',@THETA); % specify feedback controller strucutre
  
@@ -66,15 +52,10 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
     z = tf('z', Ts);
     W1_OBJ = 0.4/(z-1) + 0.02/(z-1)^2;
     OBJ.two.W1 = W1_OBJ; % Only minimize || W1 S ||_inf.
-    % Ideally objective should be around 1
-%     OBJ.two.W2 = tf(db2mag(-3));
-%     OBJ.two.W3 = makeweight(db2mag(-6), 100, db2mag(60));
-    
+
     %condition = hard constraints
-    W1_CON = 0.01/(z-1) + 0.0000005/(z-1)^2 ;%+ 0.000000007/(z-1)^3;
-%     W2_CON = tf([db2mag(-6)],[1], Ts); %=db2mag(-6)
+    W1_CON = 0.01/(z-1) + 0.0000005/(z-1)^2 ;
     W2_CON = makeweight(db2mag(-2), 160, db2mag(20));
-%     W3_CON = tf([db2mag(-16)],[1], Ts);
     W3_CON = makeweight(db2mag(-16), 300, db2mag(30));
     
     CON.W1 = [W1_CON]; % constraint || W1 S ||_\infty <1
@@ -96,29 +77,16 @@ function [FB, R_, S_, T_] = DataDriven(G, C0, plot_)
     %%
     [SYS.controller,obj] = datadriven.siso(SYS,OBJ,CON,PAR); % implementation for SISO controllers
     FB = datadriven.getController(SYS); 
-    
-    
-   S_DataDriven = feedback(1,FB*G);
-   S0 = feedback(1,C0*G);
-
-   step(S0,S_DataDriven)
-%    xlim([0 2])
-%    ylim([-2 2])
-   legend
-   shg
 
     %% 
-
     if plot_
         plotResult(FB, G, W1_CON, W2_CON, W3_CON, W1_OBJ)
     end
 
     %% convert to RST controller
-
     [R_,S_] = tfdata(FB,'v');
-    T_ = R_; % in future we can add the gettho low pass here in T
+    T_ = R_;
     FormatRST(R_,S_,T_)
-    
 end
 
 function [] = plotResult(K_, G, W1_CON, W2_CON, W3_CON, W1_OBJ)
@@ -166,26 +134,18 @@ end
 
 %%
  function FormatRST(R,S,T)
- % K: controller to test on the active suspenssion
- % will create a dataRST.bin
+     % will create a dataRST.bin
+     if numel(T) < numel(R)
+         T(numel(R)) = 0;
+     end
 
- % Send the .bin file to acs@epfl.ch
- if numel(T) < numel(R)
-     T(numel(R)) = 0;
- end
+     name = 'dataRST';
 
- name = 'dataRST';
-
- fileID = fopen(strcat([name,'.bin']), 'w');
- fwrite(fileID, [numel(R);R(:);S(:);T(:)]', 'double','l');
- fclose(fileID);
-
+     fileID = fopen(strcat([name,'.bin']), 'w');
+     fwrite(fileID, [numel(R);R(:);S(:);T(:)]', 'double','l');
+     fclose(fileID);
  end
 
 function theta = THETA(sys)
-
-% q = sys.SamplingGrid.distance;
-
-% theta = [1;q;q^2]; % schedule controller with 1,LoadCommand,LoadCommand^2
-theta = [1]; % for datadriven
+    theta = [1]; % for datadriven
 end

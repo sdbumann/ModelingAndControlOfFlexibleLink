@@ -1,13 +1,12 @@
 %% 
 clc
 close all
-clear
+clearvars -except add_java_path
 
 load('SilverMediumSysARMAX');
 Ts = G.Ts;
 
 %% tune TF controller
-
 TF = tunableTF('TF',7,7,Ts);
 
 z = tf('z',Ts);
@@ -22,15 +21,11 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 %   {'u','e','y'}:  outputs
 %   {'y'}:          analysis points
 
-
-
 % constraint || W1 S ||_\infty <1
 % constraint || W2 T ||_\infty <1
 % constraint || W3 U ||_\infty <1
 
-
-
-%% silver medium -> works -> with order 7,7 -> with randomstart 0 -> amplitude 12; Periode 3000
+%% Randomstart 0
 W1= 0.003/(z-1) + 0.00001/(z-1)^2;
 W2=tf(db2mag(-3.6));
 W3= tf(db2mag(-11));
@@ -46,13 +41,9 @@ opts = systuneOptions('RandomStart', 0, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
-
 TF = getBlockValue(CL,'TF');
 
-
-
 %% convert to RST controller
-
 [R_,S_] = tfdata(TF,'v');
 T_ = R_; % in future we can add the gettho low pass here in T
 FormatRST(R_,S_,T_)

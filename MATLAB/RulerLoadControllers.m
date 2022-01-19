@@ -1,7 +1,7 @@
 %% File to load different controllers for different rulers
 
 %% Small Ruler Hinf controller
-clc; clear; close all;
+clc; clearvars -except add_java_path; close all;
 load('SilverSmallSystuneTF.mat');
 load('SilverSmallSysARMAX');
 
@@ -11,7 +11,7 @@ FormatRST(R_,S_,T_)
 disp('dataRST.bin file for Small Ruler Hinf controller created')
 
 %% Small Ruler DataDriven Controller
-clc; clear; close all;
+clc; clearvars -except add_java_path; close all;
 load('SilverSmallDataDrivenTF.mat');
 load('SilverSmallSysARMAX');
 
@@ -21,7 +21,7 @@ FormatRST(R_,S_,T_)
 disp('dataRST.bin file for Small Ruler DataDriven Controller created')
 
 %% Medium Ruler Hinf controller
-clc; clear; close all;
+clc; clearvars -except add_java_path; close all;
 load('SilverMediumSystuneTF.mat');
 load('SilverMediumSysARMAX');
 
@@ -31,7 +31,7 @@ FormatRST(R_,S_,T_)
 disp('dataRST.bin file for Medium Ruler Hinf controller created')
 
 %% Medium Ruler DataDriven Controller
-clc; clear; close all;
+clc; clearvars -except add_java_path; close all;
 load('SilverMediumDataDrivenTF.mat');
 load('SilverMediumSysARMAX');
 
@@ -41,7 +41,7 @@ FormatRST(R_,S_,T_)
 disp('dataRST.bin file for Medium Ruler DataDriven Controller created')
 
 %% Big Ruler Hinf controller
-clc; clear; close all;
+clc; clearvars -except add_java_path; close all;
 load('SilverBigSystuneTF.mat');
 load('SilverBigSysARMAX');
 
@@ -51,7 +51,7 @@ FormatRST(R_,S_,T_)
 disp('dataRST.bin file for Big Ruler Hinf controller created')
 
 %% Big Ruler DataDriven Controller
-clc; clear; close all;
+clc; clearvars -except add_java_path; close all;
 load('SilverBigDataDrivenTF.mat');
 load('SilverBigSysARMAX');
 

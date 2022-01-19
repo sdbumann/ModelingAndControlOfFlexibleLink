@@ -1,13 +1,12 @@
 %% 
 clc
 close all
-clear
+clearvars -except add_java_path
 
 load('SilverBigSysARMAX');
 Ts = G.Ts;
 
 %% tune TF controller
-
 TF = tunableTF('TF',7,7,Ts);
 TF.Denominator.Value(end) = 0;   % fix one value that can not be changed
 TF.Denominator.Free(end) = 0;    % fix it to zero
@@ -24,14 +23,11 @@ T0 = connect(G,TF,Sum1,{'r'},{'u','e','y'}, {'y'});
 %   {'u','e','y'}:  outputs
 %   {'y'}:          analysis points
 
-
-
 % constraint || W1 S ||_\infty <1
 % constraint || W2 T ||_\infty <1
 % constraint || W3 U ||_\infty <1
 
-
-%% silver big -> it wooooorks better!! -> 7,7 with one value set to 0 -> randomstart 39; amplitude: 12; Period 10000 
+%% -> Randomstart 39
 W1 = 0.005/(z-1) + 0.00001/(z-1)^2;
 W2 = tf(db2mag(-3));
 W3 = makeweight(db2mag(-6), 100, db2mag(60));
@@ -42,27 +38,20 @@ Req.Openings = 'y';
 softReq =   [ Req ];
 hardReq =   [ TuningGoal.WeightedGain('r','e',W1,[]), TuningGoal.WeightedGain('r','y',W2,[]), TuningGoal.WeightedGain('r','u',W3,[]) ];
 
-
 %%
 opts = systuneOptions('RandomStart', 39, 'Display', 'sub');
 [CL,fSoft,gHard,f] = systune(T0,softReq,hardReq, opts);
 
 %%
-
 TF = getBlockValue(CL,'TF');
 
-
-
 %% convert to RST controller
-
 [R_,S_] = tfdata(TF,'v');
 T_ = R_; % in future we can add the gettho low pass here in T
 FormatRST(R_,S_,T_)
 
 %%
 plotResult(TF, G, W1, W2, W3)
-
-
 
 %%
 function [] = plotResult(K_, G, W1, W2, W3)
@@ -128,5 +117,4 @@ end
  fileID = fopen(strcat([name,'.bin']), 'w');
  fwrite(fileID, [numel(R);R(:);S(:);T(:)]', 'double','l');
  fclose(fileID);
-
  end
