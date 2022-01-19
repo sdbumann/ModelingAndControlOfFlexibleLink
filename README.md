@@ -11,7 +11,7 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-This GitHub repository contains the Matlab, C and LabView code used in the Semester Project I (“Modeling and Control of a Flexible Link”) for the EPFL’s masters program.
+This GitHub repository contains the Matlab, C and LabView code used in the Semester Project I (“Modeling and Control of a Flexible Link”) for the EPFL’s masters program. Note that Philippe Schuchert's toolbox was used to to designe different data driven controllers ([https://c4science.ch/source/toolbox/](https://c4science.ch/source/toolbox/)).
 
 <!-- FOLDER Structure -->
 ## Folder Structure
