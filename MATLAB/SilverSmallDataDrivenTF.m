@@ -3,7 +3,6 @@ clc
 clearvars -except add_java_path
 % Philippe Schuchert's toolbox is used for the data driven controller -> https://c4science.ch/source/toolbox/
 % Mosek fusion is needed for this script. Thus add it to java path.
-exist('add_java_path', 'var')
 if exist('add_java_path','var')==0
     javaaddpath /Users/baumann/Documents/mosek/9.3/tools/platform/osx64x86/bin/mosek.jar;% change path to mosek fusion
     add_java_path=1;
