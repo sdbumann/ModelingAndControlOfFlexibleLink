@@ -21,7 +21,7 @@ syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h,K,m);
 sysd = c2d(syscnts, Ts);
 img = figure();
 compare(Mspa, sysd);
-title('Frequency repsonce for small ruler')
+title('Frequency responce for small ruler')
 if save==true
     save_img(img, 'img_first_principle_modeling_small');
 end
@@ -41,7 +41,7 @@ syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h,K,m);
 sysd = c2d(syscnts, Ts);
 img = figure();
 compare(Mspa, sysd);
-title('Frequency repsonce for middle ruler')
+title('Frequency responce for middle ruler')
 if save==true
     save_img(img, 'img_first_principle_modeling_medium');
 end
@@ -61,7 +61,7 @@ syscnts = state_space_first_principle_modeling.continuous_fpm(l/2,l,b,h,K,m);
 sysd = c2d(syscnts, Ts);
 img = figure();
 compare(Mspa, sysd);
-title('Frequency repsonce for big ruler')
+title('Frequency responce for big ruler')
 if save==true
     save_img(img, 'img_first_principle_modeling_big');
 end
